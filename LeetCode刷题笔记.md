@@ -4,6 +4,15 @@
 
 - Tag顺序：数组-> 链表-> 哈希表->字符串->栈与队列->树->回溯->贪心->动态规划->图论->高级数据结构。先从简单刷起，做了几个类型题目之后，再慢慢做中等题目、困难题目。
 
+- 兔子法：想一会儿想不出来就看答案
+
+- 做算法题的技巧：
+
+  - 先用固定的值对特定的例子完成求解。
+  - 然后再将固定的值改为变化的值，从特定的例子推广到一般的例子，最终完成普遍意义上的求解。
+
+  ---> **先静后动** 
+
 ## 数组
 
 ### 数组理论基础
@@ -311,7 +320,7 @@
 
 - 所谓滑动窗口，**就是不断的调节子序列的起始位置和终止位置，从而得出我们要想的结果**。
 
-  在暴力解法中，是一个for循环滑动窗口的起始位置，一个for循环为滑动窗口的终止位置，用两个for循环 完成了一个不断搜索区间的过程。
+  在暴力解法中，是一个for循环滑动窗口的起始位置，一个for循环为滑动窗口的终止位置，用两个 for 循环 完成了一个不断搜索区间的过程。
 
   那么滑动窗口如何用一个for循环来完成这个操作呢？
 
@@ -505,7 +514,7 @@
 
   这个链表起始节点为2， 终止节点为7， 各个节点分布在内存的不同地址空间上，通过指针串联在一起。
 
-#### ★链表的定义
+#### 链表的定义
 
 - 接下来说一说链表的定义。链表节点的定义，很多同学在面试的时候都写不好。这是因为平时在刷leetcode的时候，链表的节点都默认定义好了，直接用就行了，所以同学们都没有注意到链表的节点是如何定义的。而在面试的时候，一旦要自己手写链表，就写的错漏百出。
 
@@ -961,7 +970,7 @@
    */
   ```
 
-### 3.反转链表
+### 3.★反转链表
 
 #### 题目
 
@@ -1209,16 +1218,16 @@
       public ListNode removeNthFromEnd(ListNode head, int n) {
           //添加虚拟头节点
           ListNode dummyHead = new ListNode(-1, head);
-          ListNode pre, cur, tmp;
-          pre = dummyHead;
-          tmp = head;
+          ListNode pre, cur;
           //计算链表节点数
           int sz = 0;
-          while (tmp != null) {
+          cur = head;
+          while (cur != null) {
               sz++;
-              tmp = tmp.next;
+              cur = cur.next;
           }
-          for (int i = 1; i <= sz - n; i++) {
+          pre = dummyHead;
+          for (int i = 0; i < sz - n; i++) {
               pre = pre.next;
           }
           cur = pre.next;	//cur指向的是要删除的节点
@@ -1449,7 +1458,7 @@
   }
   ```
 
-### 7.环形链表
+### 7.★环形链表
 
 #### 题目
 
@@ -1587,6 +1596,688 @@ public class Solution {
 
   **每次对应头结点的情况都要单独处理，所以使用虚拟头结点的技巧，就可以解决这个问题**。
 
-- 判断链表是否有环：使用双指针法来判断。
+- **判断链表是否有环：使用快慢指针法来判断**。
 
 ![](img/链表/链表总结.png)
+
+## 哈希表
+
+### 哈希表理论基础
+
+#### 哈希表
+
+- 首先什么是哈希表，**哈希表**（英文名字为`Hash table`，国内也有一些算法书籍翻译为**散列表**，大家看到这两个名称知道都是指 `hash table` 就可以了）。
+
+  > 哈希表是根据关键码的值而直接进行访问的数据结构。
+
+  - 这么这官方的解释可能有点懵，其实直白来讲其实数组就是一张哈希表。
+
+    哈希表中关键码就是数组的索引下标，然后通过下标直接访问数组中的元素。
+
+- 那么哈希表能解决什么问题呢，**一般哈希表都是用来快速判断一个元素是否出现在集合里。**
+
+  例如要查询一个名字是否在这所学校里。
+
+  要枚举的话时间复杂度是`O(n)`，但如果使用哈希表的话， 只需要`O(1)`就可以做到。
+
+  我们只需要初始化把这所学校里学生的名字都存在哈希表里，在查询的时候通过索引直接就可以知道这位同学在不在这所学校里了。
+
+  将学生姓名映射到哈希表上就涉及到了**hash function ，也就是哈希函数**。
+
+#### 哈希函数
+
+- 哈希函数，把学生的姓名直接映射为哈希表上的索引，然后就可以通过查询索引下标快速知道这位同学是否在这所学校里了。
+
+  哈希函数如下图所示，通过 `hashCode` 把名字转化为数值，一般 `hashcode` 是通过特定编码方式，可以将其他数据格式转化为不同的数值，这样就把学生名字映射为哈希表上的索引数字了。
+
+  ![](img/哈希表/哈希函数.png)
+
+  - 如果 `hashCode` 得到的数值大于哈希表的大小了，也就是大于 `tableSize` 了，怎么办呢？
+
+    此时为了保证映射出来的索引数值都落在哈希表上，我们会再次对数值做一个取模的操作，就保证了学生姓名一定可以映射到哈希表上了。
+
+    此时问题又来了，哈希表我们刚刚说过，就是一个数组。
+
+    如果学生的数量大于哈希表的大小怎么办，此时就算哈希函数计算的再均匀，也避免不了会有几位学生的名字同时映射到哈希表 同一个索引下标的位置。
+
+    接下来**哈希碰撞**登场。
+
+#### 哈希碰撞
+
+- 如图所示，小李和小王都映射到了索引下标 1 的位置，**这一现象叫做哈希碰撞**。
+
+  ![](img/哈希表/哈希碰撞.png)
+
+  一般哈希碰撞有两种解决方法， 拉链法和线性探测法。
+
+- **拉链法**：
+
+  - 既然小李和小王在索引 `1` 的位置发生了冲突，那就将发生冲突的元素都存储在链表中。 这样我们就可以通过**索引 + 链表**的方式找到小李和小王了。
+
+    ![](img/哈希表/拉链法.png)
+
+    其实拉链法就是要选择适当的哈希表的大小，这样既不会因为数组空值而浪费大量内存，也不会因为链表太长而在查找上浪费太多时间。
+
+- **线性探测法**：
+
+  - 使用线性探测法，一定要保证 `tableSize` 大于 `dataSize`。 我们需要依靠哈希表中的空位来解决碰撞问题。
+
+    例如冲突的位置，放了小李，那么就向下找一个空位放置小王的信息。所以要求 `tableSize` 一定要大于 `dataSize`，要不然哈希表上就没有空置的位置来存放冲突的数据了。如图所示：
+
+    ![](img/哈希表/线性探测法.png)
+
+#### 总结
+
+- 总结一下，**当我们遇到了要快速判断一个元素是否出现集合里的时候，就要考虑哈希法**。
+
+  但是哈希法也是**牺牲了空间换取了时间**，因为我们要使用额外的数组，`set` 或者是 `map` 来存放数据，才能实现快速的查找。
+
+  如果在做面试题目的时候遇到**需要判断一个元素是否出现过的场景也应该第一时间想到哈希法**！
+
+### 1.有效的字母异位词
+
+#### 题目
+
+- 给定两个字符串 `s` 和 `t` ，编写一个函数来判断 `t` 是否是 `s` 的字母异位词。
+
+  **注意：**若 `s` 和 `t` 中每个字符出现的次数都相同，则称 `s` 和 `t` 互为字母异位词。
+
+  **示例 1:**
+
+  ```
+  输入: s = "anagram", t = "nagaram"
+  输出: true
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: s = "rat", t = "car"
+  输出: false
+  ```
+
+  **提示:**
+
+  - `1 <= s.length, t.length <= 5 * 104`
+  - `s` 和 `t` 仅包含小写字母
+
+#### 思路
+
+- 定义一个数组叫做 `record` 用来记录字符串 `s` 里字符出现的次数。
+
+  需要把字符映射到数组也就是哈希表的索引下标上，**因为字符 `a` 到字符 `z` 的 `ASCII` 是 `26` 个连续的数值，所以字符 `a` 映射为下标 `0`，相应的字符 `z` 映射为下标 `25`。** 
+
+- 在遍历字符串 `s` 的时候，**只需要将 `record` 数组中 `s[i] - 'a'` 所在的位置的值做 `+1` 操作即可，并不需要记住字符 `a` 的ASCII，只要求出一个相对数值就可以了。** 这样就将字符串 `s` 中每个字符出现的次数，统计出来了。
+
+  那看一下如何检查字符串 `t` 中是否出现了这些字符，同样在遍历字符串 `t` 的时候，对 `t` 中出现的字符映射哈希表索引上的数值再做 `-1` 的操作。
+
+  那么最后检查一下，**`record` 数组如果有的元素不为零0，说明字符串 `s` 和 `t` 一定是谁多了字符或者谁少了字符，`return false`。** 
+
+  最后如果 `record` 数组所有元素都为 `0`，说明字符串 `s` 和 `t` 是字母异位词，`return true`。
+
+  ```java
+  class Solution {
+      public boolean isAnagram(String s, String t) {
+          if (s.length() != t.length()) { //两个字符串长度不相等
+              return false;
+          }
+          int[] record = new int[26]; //数组默认初始化为0
+          //统计字符串 s 中各字符出现的次数
+          for (int i = 0; i < s.length(); i++) {
+              record[s.charAt(i) - 'a']++;
+          }
+          //“统计”字符串 t 中各字符出现的次数
+          for (int i = 0; i < t.length(); i++) {
+              record[t.charAt(i) - 'a']--;
+          }
+          for (int i = 0; i < record.length; i++) {
+              if (record[i] != 0) {
+                  return false;
+              }
+          }
+          return true;
+      }
+  }
+  ```
+
+### 2.两个数组的交集
+
+#### 题目
+
+- 给定两个数组 `nums1` 和 `nums2` ，返回 它们的交集 。输出结果中的每个元素一定是 **唯一** 的。我们可以 **不考虑输出结果的顺序** 。
+
+  **示例 1：**
+
+  ```
+  输入：nums1 = [1,2,2,1], nums2 = [2,2]
+  输出：[2]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums1 = [4,9,5], nums2 = [9,4,9,8,4]
+  输出：[9,4]
+  解释：[4,9] 也是可通过的
+  ```
+
+  **提示：**
+
+  - `1 <= nums1.length, nums2.length <= 1000`
+  - `0 <= nums1[i], nums2[i] <= 1000`
+
+#### 思路
+
+- 注意题目特意说明：**输出结果中的每个元素一定是唯一的，也就是说输出的结果的去重的， 同时可以不考虑输出结果的顺序**。
+
+  用数组来做哈希表是不错的选择，但是要注意，**使用数组来做哈希的题目，是因为题目都限制了数值的大小。**而这道题目没有限制数值的大小，就无法使用数组来做哈希表了。**如果哈希值比较少、特别分散、跨度非常大，使用数组就造成空间的极大浪费。** 
+
+- 考虑使用 `Set` ，因为输出结果是去重的，同时可以不考虑输出顺序。
+
+  ```java
+  class Solution {
+      //Set解法
+      public int[] intersection(int[] nums1, int[] nums2) {
+          Set<Integer> set = new HashSet<>();
+          Set<Integer> resSet = new HashSet<>();
+          //将数组1的元素添加到set中
+          for (int i = 0; i < nums1.length; i++) {
+              set.add(nums1[i]);
+          }
+          for (int i = 0; i < nums2.length; i++) {
+              if (set.contains(nums2[i])) {   //判断set中是否含有和数组2中的元素 值相同的元素
+                  resSet.add(nums2[i]);   //若有则将该元素添加到resSet中
+              }
+          }
+          //将Set转换为数组
+          int[] res = new int[resSet.size()];
+          int index = 0;
+          Iterator it = resSet.iterator();
+          while (it.hasNext()) {
+              Integer num = (Integer) it.next();
+              res[index++] = num;
+          }
+          return res;
+      }
+  }
+  ```
+
+- 那有同学可能问了，遇到哈希问题我直接都用 `set` 不就得了，用什么数组啊。
+
+  直接使用 `set` 不仅占用空间比数组大，而且速度要比数组慢，`set` 把数值映射到 `key` 上都要做`hash` 计算的。不要小瞧这个耗时，在数据量大的情况，差距是很明显的。
+
+### 3.快乐数
+
+#### 题目
+
+- 编写一个算法来判断一个数 `n` 是不是快乐数。
+
+  **「快乐数」** 定义为：
+
+  - 对于一个正整数，每一次将该数替换为它每个位置上的数字的平方和。
+  - 然后重复这个过程直到这个数变为 1，也可能是 **无限循环** 但始终变不到 1。
+  - 如果这个过程 **结果为** 1，那么这个数就是快乐数。
+
+  如果 `n` 是 快乐数 就返回 `true` ；不是，则返回 `false` 。
+
+  **示例 1：**
+
+  ```
+  输入：n = 19
+  输出：true
+  解释：
+  1^2 + 9^2 = 82
+  8^2 + 2^2 = 68
+  6^2 + 8^2 = 100
+  1^2 + 0^2 + 0^2 = 1
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：n = 2
+  输出：false
+  ```
+
+  **提示：**
+
+  - `1 <= n <= 2^31 - 1`
+
+#### 思路
+
+- 这道题目看上去貌似一道数学问题，其实并不是！
+
+  题目中说了会 **无限循环**，那么也就是说求和的过程中，sum 会重复出现，这对解题很重要。当我们遇到了要快速判断一个元素是否出现集合里的时候，就要考虑哈希法了。
+
+  所以这道题目**使用哈希法，来判断这个 sum 是否重复出现**，如果重复了就是 `return false`， 否则一直找到 sum 为 1 为止。
+
+  ```java
+  class Solution {
+      public boolean isHappy(int n) {
+          int num, nextNum;
+          Set<Integer> set = new HashSet<>();
+          num = n;
+          set.add(num);
+          while (true) {
+              nextNum = getNextNum(num);
+              if (nextNum == 1) {
+                  return true;
+              }
+              if (set.contains(nextNum)) {
+                  return false;
+              }
+              num = nextNum;
+              set.add(num);
+          }
+      }
+  
+      public int getNextNum(int num) {
+          int sum = 0;
+          while (num != 0) {
+              sum += (num % 10) * (num % 10);
+              num = num / 10;
+          }
+          return sum;
+      }
+  }
+  ```
+
+### 4.两数之和
+
+#### 题目
+
+- 给定一个整数数组 `nums` 和一个整数目标值 `target`，请你在该数组中找出 **和为目标值** `target` 的那 **两个** 整数，并返回它们的数组下标。
+
+  你可以假设每种输入只会对应一个答案。但是，数组中同一个元素在答案里不能重复出现。
+
+  你可以按任意顺序返回答案。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [2,7,11,15], target = 9
+  输出：[0,1]
+  解释：因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [3,2,4], target = 6
+  输出：[1,2]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：nums = [3,3], target = 6
+  输出：[0,1]
+  ```
+
+  **提示：**
+
+  - `2 <= nums.length <= 104`
+  - `-109 <= nums[i] <= 109`
+  - `-109 <= target <= 109`
+  - **只会存在一个有效答案**
+
+#### 思路
+
+- 暴力解法：直接两层 for 循环遍历求解。
+
+- **进阶：**你可以想出一个时间复杂度小于 `O(n2)` 的算法吗？
+
+  - 因为要返回两个整数的下标，所以不仅要存这两个整数，还要存他们的下标，用 `Map` 数据结构。
+
+  - 判断两数之和是否为目标值，只需要判断 *目标值 - 当前数* 所得的数是否在 `Map` 中。
+
+    ```java
+    class Solution {
+        public int[] twoSum(int[] nums, int target) {
+            int[] result = new int[2];
+            if (nums == null || nums.length < 2) {
+                return result;
+            }
+            HashMap<Integer, Integer> map = new HashMap<>();
+            for (int i = 0; i < nums.length; i++) {
+                // 判断 target - nums[i] 是否在 map 中
+                int another = target - nums[i];
+                if (map.containsKey(another)) {
+                    result[0] = i;
+                    result[1] = map.get(another);
+                    return result;
+                }
+                // 如果不在，则将当前的数保存到 map 中
+                map.put(nums[i], i);
+            }
+            // 找不到这样的两个数
+            return result;
+        }
+    }
+    ```
+
+    - 不是一股脑把数全部加到 Map 中，而是边判断边加入
+
+### 5.四数相加II
+
+#### 题目
+
+- 给你四个整数数组 `nums1`、`nums2`、`nums3` 和 `nums4` ，数组长度都是 `n` ，请你计算有多少个元组 `(i, j, k, l)` 能满足：
+
+  - `0 <= i, j, k, l < n`
+  - `nums1[i] + nums2[j] + nums3[k] + nums4[l] == 0`
+
+  **示例 1：**
+
+  ```
+  输入：nums1 = [1,2], nums2 = [-2,-1], nums3 = [-1,2], nums4 = [0,2]
+  输出：2
+  解释：
+  两个元组如下：
+  1. (0, 0, 0, 1) -> nums1[0] + nums2[0] + nums3[0] + nums4[1] = 1 + (-2) + (-1) + 2 = 0
+  2. (1, 1, 0, 0) -> nums1[1] + nums2[1] + nums3[0] + nums4[0] = 2 + (-1) + (-1) + 0 = 0
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums1 = [0], nums2 = [0], nums3 = [0], nums4 = [0]
+  输出：1
+  ```
+
+   **提示：**
+
+  - `n == nums1.length`
+  - `n == nums2.length`
+  - `n == nums3.length`
+  - `n == nums4.length`
+  - `1 <= n <= 200`
+  - `-228 <= nums1[i], nums2[i], nums3[i], nums4[i] <= 228`
+
+#### 思路
+
+- 直观想法是，四层 for 循环暴力破解，但是肯定是不可能这么做的，时间复杂度会达到 O(n^4)。
+
+- 其实和 `4.两数之和` 有点类似，可以将前两个数组 A、B 用两层 for 循环，将其之和 a+b 添加到 Map 中。
+
+  - Map 的 key 存储的是两数之和，value 存储的是两数之和出现的次数。
+
+  然后对另外两个数组 C、D，看看 `0-(c+d)` 是否在 Map 中有存在，有的话就说明能找到 `a+b+c+d=0`，因为只要求给出满足要求的个数，所以计数就行了。
+
+  ```java
+  class Solution {
+      public int fourSumCount(int[] nums1, int[] nums2, int[] nums3, int[] nums4) {
+          int result = 0;
+          // map 用于存储前两个数组元素之和及其出现的次数
+          HashMap<Integer, Integer> map = new HashMap<>();
+          for (int i = 0; i < nums1.length; i++) {
+              for (int j = 0; j < nums2.length; j++) {
+                  int sum = nums1[i] + nums2[j];
+                  Integer count = map.get(sum);
+                  if (count == null) {
+                      map.put(sum, 1);
+                  } else {
+                      map.put(sum, count + 1);
+                  }
+              }
+          }
+          // 遍历另外两个数组
+          for (int i = 0; i < nums3.length; i++) {
+              for (int j = 0; j < nums4.length; j++) {
+                  int sum = nums3[i] + nums4[j];
+                  if (map.containsKey(0 - sum)) {
+                      result += map.get(0 - sum);
+                  }
+              }
+          }
+          return result;
+      }
+  }
+  ```
+
+  - 时间复杂度 O(n^2)
+
+### 6.赎金信
+
+#### 题目
+
+- 给你两个字符串：`ransomNote` 和 `magazine` ，判断 `ransomNote` 能不能由 `magazine` 里面的字符构成。
+
+  如果可以，返回 `true` ；否则返回 `false` 。
+
+  **`magazine` 中的每个字符只能在 `ransomNote` 中使用一次**。
+
+  **示例 1：**
+
+  ```
+  输入：ransomNote = "a", magazine = "b"
+  输出：false
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：ransomNote = "aa", magazine = "ab"
+  输出：false
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：ransomNote = "aa", magazine = "aab"
+  输出：true
+  ```
+
+  **提示：**
+
+  - `1 <= ransomNote.length, magazine.length <= 105`
+  - `ransomNote` 和 `magazine` 由小写英文字母组成
+
+#### 思路
+
+- 和 `1.有效的字母异位词` 类似，用数组来对字母进行统计。
+
+  ```java
+  class Solution {
+      public boolean canConstruct(String ransomNote, String magazine) {
+          int[] array = new int[26];
+          // 统计magazine中的字符
+          for (int i = 0; i < magazine.length(); i++) {
+              char c = magazine.charAt(i);
+              array[c - 'a']++;
+          }
+          for (int i = 0; i < ransomNote.length(); i++) {
+              char c = ransomNote.charAt(i);
+              if (array[c - 'a'] == 0) {
+                  // 说明magazine中的字符不足以组成ransomNote
+                  return false;
+              } else {
+                  array[c - 'a']--;
+              }
+          }
+          return true;
+      }
+  }
+  ```
+
+### 7.三数之和(去重)
+
+#### 题目
+
+- 给你一个整数数组 `nums` ，判断是否存在三元组 `[nums[i], nums[j], nums[k]]` 满足 `i != j`、`i != k` 且 `j != k` ，同时还满足 `nums[i] + nums[j] + nums[k] == 0` 。请
+
+  你返回所有和为 `0` 且不重复的三元组。
+
+  **注意：**答案中不可以包含重复的三元组。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [-1,0,1,2,-1,-4]
+  输出：[[-1,-1,2],[-1,0,1]]
+  解释：
+  nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0 。
+  nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0 。
+  nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0 。
+  不同的三元组是 [-1,0,1] 和 [-1,-1,2] 。
+  注意，输出的顺序和三元组的顺序并不重要。
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [0,1,1]
+  输出：[]
+  解释：唯一可能的三元组和不为 0 。
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：nums = [0,0,0]
+  输出：[[0,0,0]]
+  解释：唯一可能的三元组和为 0 。
+  ```
+
+  **提示：**
+
+  - `3 <= nums.length <= 3000`
+  - `-105 <= nums[i] <= 105`
+
+#### 思路
+
+- 在这里用哈希表的方法不是不行，但是会比较麻烦，因为我们需要考虑去重的问题。
+
+  - 我们用双指针法解决该题，前提是要先把 `nums` 数组进行升序排序。
+
+  ```java
+  class Solution {
+      public List<List<Integer>> threeSum(int[] nums) {
+          List<List<Integer>> result = new ArrayList<>();
+          int leftIndex, rightIndex;
+          Arrays.sort(nums); // 将数组升序排序
+          for (int i = 0; i < nums.length; i++) {
+              if (nums[i] > 0) { // 剪枝
+                  break;
+              }
+              // 求a+b+c=0，a=nums[i], b=nums[leftIndex], c=nums[rightIndex]
+              if (i > 0 && nums[i] == nums[i - 1]) { // 对a去重
+                  continue;
+              }
+              leftIndex = i + 1;
+              rightIndex = nums.length - 1;
+              while (leftIndex < rightIndex) { // 不可能重合，所以不是<=
+                  int sum = nums[i] + nums[leftIndex] + nums[rightIndex];
+                  if (sum > 0) { // 说明nums[rightIndex]大了
+                      rightIndex--;
+                  } else if (sum < 0) { // 说明nums[leftIndex]小了
+                      leftIndex++;
+                  } else { // 找到了
+                      List<Integer> tmpt = new ArrayList<>();
+                      tmpt.add(nums[i]);
+                      tmpt.add(nums[leftIndex]);
+                      tmpt.add(nums[rightIndex]);
+                      result.add(tmpt);
+                      leftIndex++;
+                      rightIndex--;
+                      while (leftIndex < rightIndex && nums[leftIndex - 1] == nums[leftIndex]) { // 对b去重
+                          leftIndex++;
+                      }
+                      while (leftIndex < rightIndex && nums[rightIndex + 1] == nums[rightIndex]) { // 对c去重
+                          rightIndex--;
+                      }
+                  }
+              }
+          }
+          return result;
+      }
+  }
+  ```
+
+  - 要注意去重的逻辑。
+
+### 8.四数之和(去重)
+
+#### 题目
+
+- 给你一个由 `n` 个整数组成的数组 `nums` ，和一个目标值 `target` 。请你找出并返回满足下述全部条件且**不重复**的四元组 `[nums[a], nums[b], nums[c], nums[d]]` （若两个四元组元素一一对应，则认为两个四元组重复）：
+
+  - `0 <= a, b, c, d < n`
+  - `a`、`b`、`c` 和 `d` **互不相同**
+  - `nums[a] + nums[b] + nums[c] + nums[d] == target`
+
+  你可以按 **任意顺序** 返回答案 。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [1,0,-1,0,-2,2], target = 0
+  输出：[[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [2,2,2,2,2], target = 8
+  输出：[[2,2,2,2]]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 200`
+  - `-109 <= nums[i] <= 109`
+  - `-109 <= target <= 109`
+
+#### 思路
+
+- 思路和三数之和类似，只是在外面又嵌套了一层 for 循环。
+
+  ```java
+  class Solution {
+      public List<List<Integer>> fourSum(int[] nums, int target) {
+          List<List<Integer>> result = new ArrayList<>();
+          int leftIndex, rightIndex;
+          if (nums.length < 4) {
+              return result;
+          }
+          Arrays.sort(nums);
+          // 计算a+b+c+d=target,a=nums[i], b=nums[j], c=nums[leftIndex], d=nums[rightIndex]
+          for (int i = 0; i < nums.length; i++) {
+              if (nums[i] > 0 && nums[i] > target) { // 剪枝
+                  break;
+              }
+              if (i > 0 && nums[i - 1] == nums[i]) { // 对a去重
+                  continue;
+              }
+              for (int j = i + 1; j < nums.length; j++) {
+                  if (j > i + 1 && nums[j - 1] == nums[j]) { // 对b去重
+                      continue;
+                  }
+                  leftIndex = j + 1;
+                  rightIndex = nums.length - 1;
+                  while (leftIndex < rightIndex) {
+                      int sum = nums[i] + nums[j] + nums[leftIndex] + nums[rightIndex];
+                      if (sum > target) { // nums[rightIndex]大了
+                          rightIndex--;
+                      } else if (sum < target) { // nums[leftIndex]小了
+                          leftIndex++;
+                      } else { // 找到了
+                          result.add(Arrays.asList(nums[i], nums[j], nums[leftIndex], nums[rightIndex]));
+                          leftIndex++;
+                          rightIndex--;
+                          while (leftIndex < rightIndex && nums[leftIndex - 1] == nums[leftIndex]) { // 对c去重
+                              leftIndex++;
+                          }
+                          while (leftIndex < rightIndex && nums[rightIndex + 1] == nums[rightIndex]) { // 对d去重
+                              rightIndex--;
+                          }
+                      }
+                  }
+              }
+          }
+          return result;
+      }
+  }
+  ```
+
+  - 在这里注意一下对 b 的去重，要加上 `j > i + 1` 的逻辑判断。
