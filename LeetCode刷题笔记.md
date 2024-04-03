@@ -2196,7 +2196,7 @@ public class Solution {
 
   - 要注意去重的逻辑。
 
-### 8.四数之和(去重)
+### 8.★四数之和(去重)
 
 #### 题目
 
@@ -2281,3 +2281,1212 @@ public class Solution {
   ```
 
   - 在这里注意一下对 b 的去重，要加上 `j > i + 1` 的逻辑判断。
+
+### 总结篇
+
+- **一般来说哈希表都是用来快速判断一个元素是否出现集合里**。
+
+  对于哈希表，要知道哈希函数和哈希碰撞在哈希表中的作用。
+
+  - **哈希函数**是把传入的key映射到符号表的索引上。
+  - **哈希碰撞**处理有多个key映射到相同索引上时的情景，处理碰撞的普遍方式是拉链法和线性探测法。
+
+- 我们一般可以采用数组、Set、Map 作为 “哈希表”
+
+  - **数组**适合作为大小受限的 “哈希表”，例如对只有 26 个英文字母做哈希表
+
+    如果大小没有受限，就不太适合用数组来做哈希表了。
+
+    - 一是数组的大小是有限的，受到系统栈空间（不是数据结构的栈）的限制。
+    - 二是如果数组空间够大，但哈希值比较少、特别分散、跨度非常大，使用数组就造成空间的极大浪费。
+
+  - 对于没有限制数值大小的情况，可以用 **Set** 来做哈希表。
+
+  - **Map** 是一种 `<key, value>` 的结构，可以用 `key` 保存数值，用 `value` 保存其他有关的值。
+
+## 字符串
+
+### 1.反转字符串
+
+#### 题目
+
+- 编写一个函数，其作用是将输入的字符串反转过来。输入字符串以字符数组 `s` 的形式给出。
+
+  不要给另外的数组分配额外的空间，你必须**[原地](https://baike.baidu.com/item/原地算法)修改输入数组**、使用 O(1) 的额外空间解决这一问题。
+
+  **示例 1：**
+
+  ```
+  输入：s = ["h","e","l","l","o"]
+  输出：["o","l","l","e","h"]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：s = ["H","a","n","n","a","h"]
+  输出：["h","a","n","n","a","H"]
+  ```
+
+  **提示：**
+
+  - `1 <= s.length <= 105`
+  - `s[i]` 都是 [ASCII](https://baike.baidu.com/item/ASCII) 码表中的可打印字符
+
+#### 思路
+
+- 没啥好说的，用一个临时变量辅助对两个值进行互换。
+
+  ```java
+  class Solution {
+      public void reverseString(char[] s) {
+          char c;
+          for (int i = 0; i < s.length / 2; i++) {
+              c = s[i];
+              s[i] = s[s.length - i - 1];
+              s[s.length - i - 1] = c;
+          }
+      }
+  }
+  ```
+
+### 2.反转字符串II
+
+#### 题目
+
+- 给定一个字符串 `s` 和一个整数 `k`，从字符串开头算起，每计数至 `2k` 个字符，就反转这 `2k` 字符中的前 `k` 个字符。
+
+  - 如果剩余字符少于 `k` 个，则将剩余字符全部反转。
+  - 如果剩余字符小于 `2k` 但大于或等于 `k` 个，则反转前 `k` 个字符，其余字符保持原样。
+
+  **示例 1：**
+
+  ```
+  输入：s = "abcdefg", k = 2
+  输出："bacdfeg"
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：s = "abcd", k = 2
+  输出："bacd"
+  ```
+
+  **提示：**
+
+  - `1 <= s.length <= 104`
+  - `s` 仅由小写英文组成
+  - `1 <= k <= 104`
+
+#### 思路
+
+- 在遍历字符串的过程中，只要让 `i += (2 * k)`，i 每次移动 2 * k 就可以了，然后判断是否需要有反转的区间。
+
+  因为要找的也就是每2 * k 区间的起点，这样写，程序会高效很多。
+
+  **所以当需要固定规律一段一段去处理字符串的时候，要想想在在for循环的表达式上做做文章。**
+
+  ```java
+  class Solution {
+      public String reverseStr(String s, int k) {
+          char[] charArray = s.toCharArray();
+          for (int i = 0; i < charArray.length; i += 2 * k) {
+              int start = i;
+              int end = Math.min(charArray.length - 1, start + k - 1);
+              while (start < end) {
+                  char c;
+                  c = charArray[start];
+                  charArray[start] = charArray[end];
+                  charArray[end] = c;
+                  start++;
+                  end--;
+              }
+          }
+          return new String(charArray);
+      }
+  }
+  ```
+
+### 3.翻转字符串里的单词
+
+#### 题目
+
+- 给你一个字符串 `s` ，请你反转字符串中 **单词** 的顺序。
+
+  **单词** 是由非空格字符组成的字符串。`s` 中使用至少一个空格将字符串中的 **单词** 分隔开。
+
+  返回 **单词** 顺序颠倒且 **单词** 之间用单个空格连接的结果字符串。
+
+  **注意：**输入字符串 `s`中可能会存在前导空格、尾随空格或者单词间的多个空格。返回的结果字符串中，单词间应当仅用单个空格分隔，且不包含任何额外的空格。
+
+  **示例 1：**
+
+  ```
+  输入：s = "the sky is blue"
+  输出："blue is sky the"
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：s = "  hello world  "
+  输出："world hello"
+  解释：反转后的字符串中不能存在前导空格和尾随空格。
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：s = "a good   example"
+  输出："example good a"
+  解释：如果两个单词间有多余的空格，反转后的字符串需要将单词间的空格减少到仅有一个。
+  ```
+
+  **提示：**
+
+  - `1 <= s.length <= 104`
+  - `s` 包含英文大小写字母、数字和空格 `' '`
+  - `s` 中 **至少存在一个** 单词
+
+#### 思路
+
+- 如果用现有的库函数的话，这题其实很简单：
+
+  ```java
+  class Solution {
+      public String reverseWords(String s) {
+          StringBuilder sb = new StringBuilder();
+          s = s.trim(); // 处理两头的空格
+          String[] array = s.split("\\s+"); // 单词分割
+          for (int i = array.length - 1; i >= 0; i--) {
+              sb.append(array[i]);
+              if (i > 0) {
+                  sb.append(' ');
+              }
+          }
+          return sb.toString();
+      }
+  }
+  ```
+
+- 进阶：不要使用现有的 trim 和 split 函数，自己完成具体的细节。
+
+  ```java
+  class Solution {
+      public String reverseWords(String s) {
+          StringBuilder sb = new StringBuilder();
+          List<String> list;
+          s = trimSpace(s);
+          list = splitString(s);
+          while (!list.isEmpty()) {
+              String word = list.remove(list.size() - 1);
+              sb.append(word);
+              if (!list.isEmpty()) {
+                  sb.append(' ');
+              }
+          }
+          return sb.toString();
+      }
+  
+      // 移除两端的空格
+      public String trimSpace(String s) {
+          int left, right;
+          left = 0;
+          right = s.length() - 1;
+          while (s.charAt(left) == ' ') {
+              left++;
+          }
+          while (s.charAt(right) == ' ') {
+              right--;
+          }
+          return s.substring(left, right + 1);
+      }
+  
+      // 提取出空格分隔的单词
+      public List<String> splitString(String s) {
+          List<String> list = new ArrayList<>();
+          int start, end;
+          start = end = 0;
+          while (start < s.length()) {
+              while (s.charAt(end) != ' ') {
+                  end++;
+                  if (end == s.length()) {
+                      break;
+                  }
+              }
+              String word = s.substring(start, end);
+              list.add(word);
+              if (end == s.length()) {
+                  break;
+              }
+              while (s.charAt(end) == ' ') {
+                  end++;
+                  // 因为已经移除两端的空格了，所以不需要下面的判断
+                  // if (end == s.length()) {
+                  //     break;
+                  // }
+              }
+              start = end;
+          }
+          return list;
+      }
+  }
+  ```
+
+  - 实际做题还是优先用库函数。
+
+### 4.★实现strStr(KMP)
+
+#### 题目
+
+- 给你两个字符串 `haystack` 和 `needle` ，请你在 `haystack` 字符串中找出 `needle` 字符串的第一个匹配项的下标（下标从 0 开始）。如果 `needle` 不是 `haystack` 的一部分，则返回 `-1` 。
+
+  **示例 1：**
+
+  ```
+  输入：haystack = "sadbutsad", needle = "sad"
+  输出：0
+  解释："sad" 在下标 0 和 6 处匹配。
+  第一个匹配项的下标是 0 ，所以返回 0 。
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：haystack = "leetcode", needle = "leeto"
+  输出：-1
+  解释："leeto" 没有在 "leetcode" 中出现，所以返回 -1 。
+  ```
+
+  **提示：**
+
+  - `1 <= haystack.length, needle.length <= 104`
+  - `haystack` 和 `needle` 仅由小写英文字符组成
+
+#### 思路
+
+- 对于判断是否是子串的问题，很明显是用 KMP 算法来做。
+  - KMP 的经典思想就是：当出现字符串不匹配时，可以记录一部分之前已经匹配的文本内容，利用这些信息避免从头再去做匹配。
+
+- 写过 KMP 的同学，一定都写过 next 数组，那么这个 next 数组究竟是个啥呢？
+
+  - next 数组就是一个前缀表（prefix table）。前缀表是用来回退的，它记录了模式串与主串(文本串)不匹配的时候，模式串应该从哪里开始重新匹配。
+  - 首先要知道前缀表的任务是当前位置匹配失败，找到之前已经匹配上的位置，再重新匹配，此也意味着在某个字符失配时，前缀表会告诉你下一步匹配中，应该跳到哪个位置，再进行模式串匹配。
+
+- **所以 KMP 算法分为两步：**
+
+  - **获得 next 数组。**
+  - **使用 next 数组进行匹配。**
+
+  ```java
+  class Solution {
+      public int strStr(String haystack, String needle) {
+          int[] next = getNext(needle);
+          int i, j;
+          i = j = 0;
+          while (i < haystack.length() && j < needle.length()) {
+              if (haystack.charAt(i) == needle.charAt(j)) {
+                  i++;
+                  j++;
+              } else if (j > 0) {
+                  j = next[j - 1] + 1;
+              } else {
+                  i++;	// 说明模式串的第一个字符就没匹配，所以文本串的下标向后移动一位
+              }
+          }
+          return j == needle.length() ? (i - j) : -1;
+      }
+  
+      // 获取模式串的next数组
+      public int[] getNext(String needle) {
+          int[] next = new int[needle.length()];
+          next[0] = -1;
+          for (int i = 1; i < needle.length(); i++) {
+              int tmpt = next[i - 1];
+              while (tmpt >= 0 && needle.charAt(tmpt + 1) != needle.charAt(i)) {
+                  tmpt = next[tmpt];
+              }
+              if (needle.charAt(tmpt + 1) == needle.charAt(i)) {
+                  next[i] = tmpt + 1;
+              } else {
+                  next[i] = -1;
+              }
+          }
+          return next;
+      }
+  }
+  ```
+
+### 5.重复的子字符串
+
+#### 题目
+
+- 给定一个非空的字符串 `s` ，检查是否可以通过由它的一个子串重复多次构成。
+
+  **示例 1:**
+
+  ```
+  输入: s = "abab"
+  输出: true
+  解释: 可由子串 "ab" 重复两次构成。
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: s = "aba"
+  输出: false
+  ```
+
+  **示例 3:**
+
+  ```
+  输入: s = "abcabcabcabc"
+  输出: true
+  解释: 可由子串 "abc" 重复四次构成。 (或子串 "abcabc" 重复两次构成。)
+  ```
+
+  **提示：**
+
+  - `1 <= s.length <= 104`
+  - `s` 由小写英文字母组成
+
+#### 思路
+
+- 如果一个字符串能由它的子串重复多次构成，那它的子串一定是可以从开头开始截取的，所以只需要从开头开始截取不同的子串，再进行判断。
+
+  - 所以一个 for 循环获取子串的终止位置就行了。 而且遍历的时候都不用遍历结束，只需要遍历到中间位置，因为子串结束位置大于中间位置的话，一定不能重复组成字符串。下面就是暴力破解的代码：
+
+    ```java
+    class Solution {
+        public boolean repeatedSubstringPattern(String s) {
+            // 暴力解法
+            for (int i = 0; i < s.length() / 2; i++) {
+                String sub = s.substring(0, i + 1);
+                if (s.length() % sub.length() != 0) {
+                    continue;
+                }
+                int index = 0;
+                int loop = s.length() / sub.length();
+                int start;
+                while (index < loop) {
+                    start = index * sub.length();
+                    if (s.substring(start, start + sub.length()).equals(sub)) {
+                        index++;
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+                if (index == loop) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    ```
+
+- 这题还能用 KMP 算法求解。
+
+  - 主要是利用 next 数组求解。
+
+    ```java
+    class Solution {
+        public boolean repeatedSubstringPattern(String s) {
+            int[] next = getNext(s);
+            int len = s.length();
+            // (len - next[len - 1] - 1)表示周期的长度
+            // 数组长度减去最长相同前后缀的长度相当于是一个周期的长度，如果这个周期长度可以被数组长度整除，
+            // 就说明整个数组就是这个周期的循环。
+            if (next[len - 1] >= 0 && len % (len - next[len - 1] - 1) == 0) {
+                return true;
+            }
+            return false;
+        }
+    
+        // 获取next数组
+        public int[] getNext(String s) {
+            int[] next = new int[s.length()];
+            next[0] = -1;
+            for (int i = 1; i < s.length(); i++) {
+                int tmpt = next[i - 1];
+                while (tmpt >= 0 && s.charAt(tmpt + 1) != s.charAt(i)) {
+                    tmpt = next[tmpt];
+                }
+                if (s.charAt(tmpt + 1) == s.charAt(i)) {
+                    next[i] = tmpt + 1;
+                } else {
+                    next[i] = -1;
+                }
+            }
+            return next;
+        }
+    }
+    ```
+
+### 总结篇
+
+- 字符串类型的题目，往往想法比较简单，但是实现起来并不容易，复杂的字符串题目非常考验对代码的掌控能力。
+  - 双指针法是字符串处理的常客。
+  - KMP 算法是字符串查找最重要的算法，**要知道怎么获取 next 数组，并且如何使用它**。
+
+## 栈与队列
+
+### 栈与队列理论基础
+
+- 队列是先进先出，入口和出口不是同一个。
+- 栈是先进后出，入口和出口是同一个。
+
+### 1.用栈实现队列
+
+#### 题目
+
+- 请你仅使用两个栈实现先入先出队列。队列应当支持一般队列支持的所有操作（`push`、`pop`、`peek`、`empty`）：
+
+  实现 `MyQueue` 类：
+
+  - `void push(int x)` 将元素 x 推到队列的末尾
+  - `int pop()` 从队列的开头移除并返回元素
+  - `int peek()` 返回队列开头的元素
+  - `boolean empty()` 如果队列为空，返回 `true` ；否则，返回 `false`
+
+  **说明：**
+
+  - 你 **只能** 使用标准的栈操作 —— 也就是只有 `push to top`, `peek/pop from top`, `size`, 和 `is empty` 操作是合法的。
+  - 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。
+
+  **示例 1：**
+
+  ```
+  输入：
+  ["MyQueue", "push", "push", "peek", "pop", "empty"]
+  [[], [1], [2], [], [], []]
+  输出：
+  [null, null, null, 1, 1, false]
+  
+  解释：
+  MyQueue myQueue = new MyQueue();
+  myQueue.push(1); // queue is: [1]
+  myQueue.push(2); // queue is: [1, 2] (leftmost is front of the queue)
+  myQueue.peek(); // return 1
+  myQueue.pop(); // return 1, queue is [2]
+  myQueue.empty(); // return false
+  ```
+
+  **提示：**
+
+  - `1 <= x <= 9`
+  - 最多调用 `100` 次 `push`、`pop`、`peek` 和 `empty`
+  - 假设所有操作都是有效的 （例如，一个空的队列不会调用 `pop` 或者 `peek` 操作）
+
+#### 思路
+
+- 使用栈来模式队列的行为，如果仅仅用一个栈，是一定不行的，所以需要两个栈**一个输入栈，一个输出栈**，这里要注意输入栈和输出栈的关系。
+
+  - 在 push 数据的时候，只要数据放进输入栈就好。
+  - 在 pop 的时候，操作就复杂一些，**输出栈如果为空，就要先把输入栈的数据全部导出到输出栈中，再从输出栈弹出数据**；如果输出栈不为空，则直接从出栈弹出数据就可以了。
+
+  ```java
+  class MyQueue {
+      public List<Integer> stackIn;
+      public List<Integer> stackOut;
+  
+      public MyQueue() {
+          stackIn = new ArrayList<>(); // 输入栈
+          stackOut = new ArrayList<>(); // 输出栈
+      }
+  
+      public void push(int x) {
+          stackIn.add(x);
+      }
+  
+      public int pop() {
+          if (!stackOut.isEmpty()) {
+              return stackOut.remove(stackOut.size() - 1);
+          }
+          transfer();
+          return stackOut.remove(stackOut.size() - 1);
+      }
+  
+      public int peek() {
+          if (!stackOut.isEmpty()) {
+              return stackOut.get(stackOut.size() - 1);
+          }
+          transfer();
+          return stackOut.get(stackOut.size() - 1);
+      }
+  
+      public boolean empty() {
+          return stackIn.isEmpty() && stackOut.isEmpty();
+      }
+  
+      public void transfer() {
+          // 将输入栈的数据全部导出到输出栈中
+          while (!stackIn.isEmpty()) {
+              stackOut.add(stackIn.remove(stackIn.size() - 1));
+          }
+      }
+  }
+  
+  /**
+   * Your MyQueue object will be instantiated and called as such:
+   * MyQueue obj = new MyQueue();
+   * obj.push(x);
+   * int param_2 = obj.pop();
+   * int param_3 = obj.peek();
+   * boolean param_4 = obj.empty();
+   */
+  ```
+
+### 2.用队列实现栈
+
+#### 题目
+
+- 请你仅使用两个队列实现一个后入先出（LIFO）的栈，并支持普通栈的全部四种操作（`push`、`top`、`pop` 和 `empty`）。
+
+  实现 `MyStack` 类：
+
+  - `void push(int x)` 将元素 x 压入栈顶。
+  - `int pop()` 移除并返回栈顶元素。
+  - `int top()` 返回栈顶元素。
+  - `boolean empty()` 如果栈是空的，返回 `true` ；否则，返回 `false` 。
+
+  **注意：**
+
+  - 你只能使用队列的标准操作 —— 也就是 `push to back`、`peek/pop from front`、`size` 和 `is empty` 这些操作。
+  - 你所使用的语言也许不支持队列。 你可以使用 list （列表）或者 deque（双端队列）来模拟一个队列 , 只要是标准的队列操作即可。
+
+  **示例：**
+
+  ```
+  输入：
+  ["MyStack", "push", "push", "top", "pop", "empty"]
+  [[], [1], [2], [], [], []]
+  输出：
+  [null, null, null, 2, 2, false]
+  
+  解释：
+  MyStack myStack = new MyStack();
+  myStack.push(1);
+  myStack.push(2);
+  myStack.top(); // 返回 2
+  myStack.pop(); // 返回 2
+  myStack.empty(); // 返回 False
+  ```
+
+  **提示：**
+
+  - `1 <= x <= 9`
+  - 最多调用`100` 次 `push`、`pop`、`top` 和 `empty`
+  - 每次调用 `pop` 和 `top` 都保证栈不为空
+
+#### 思路
+
+- 和 `1.用栈实现队列` 不同，另一个队列完全是用来备份的。
+
+  - 用两个队列 que1 和 que2 实现队列的功能，que2 其实完全就是一个备份的作用，把 que1 最后面的元素以外的元素都备份到 que2，然后弹出最后面的元素，再把其他元素从 que2 导回 que1。
+
+    代码就不写了。
+
+- **进阶：**用一个队列来实现栈。
+
+  - 只需要把最后面的元素以外的元素重新导入到队列中即可。
+
+  ```java
+  class MyStack {
+      public List<Integer> queue;
+  
+      public MyStack() {
+          queue = new ArrayList();
+      }
+  
+      public void push(int x) {
+          queue.add(x);
+      }
+  
+      public int pop() {
+          transfer();
+          return queue.remove(0);
+      }
+  
+      public int top() {
+          transfer();
+          int r = queue.get(0);
+          queue.add(queue.remove(0));
+          return r;
+      }
+  
+      public boolean empty() {
+          return queue.isEmpty();
+      }
+  
+      public void transfer() {
+          int tmpt;
+          for (int i = 0; i < queue.size() - 1; i++) {
+              tmpt = queue.remove(0);
+              queue.add(tmpt);
+          }
+      }
+  }
+  
+  /**
+   * Your MyStack object will be instantiated and called as such:
+   * MyStack obj = new MyStack();
+   * obj.push(x);
+   * int param_2 = obj.pop();
+   * int param_3 = obj.top();
+   * boolean param_4 = obj.empty();
+   */
+  ```
+
+### 3.有效的括号
+
+#### 题目
+
+- 给定一个只包括 `'('`，`')'`，`'{'`，`'}'`，`'['`，`']'` 的字符串 `s` ，判断字符串是否有效。
+
+  有效字符串需满足：
+
+  1. 左括号必须用相同类型的右括号闭合。
+  2. 左括号必须以正确的顺序闭合。
+  3. 每个右括号都有一个对应的相同类型的左括号。
+
+  **示例 1：**
+
+  ```
+  输入：s = "()"
+  输出：true
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：s = "()[]{}"
+  输出：true
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：s = "(]"
+  输出：false
+  ```
+
+  **提示：**
+
+  - `1 <= s.length <= 104`
+  - `s` 仅由括号 `'()[]{}'` 组成
+
+#### 思路
+
+- **括号匹配是使用栈解决的经典问题。**
+
+  - 建议在写代码之前要分析好有哪几种不匹配的情况，如果不在动手之前分析好，写出的代码也会有很多问题。
+
+    - 第一种情况，字符串里左方向的括号多余了 ，所以不匹配。
+      - 已经遍历完了字符串，但是栈不为空，说明有相应的左括号没有右括号来匹配，所以 return false
+    - 第二种情况，括号没有多余，但是括号的类型没有匹配上。
+      - 遍历字符串匹配的过程中，发现栈里没有要匹配的字符，所以 return false
+    - 第三种情况，字符串里右方向的括号多余了，所以不匹配。
+      - 遍历字符串匹配的过程中，栈已经为空了，没有匹配的字符了，说明右括号没有找到对应的左括号 return false
+
+    ```java
+    class Solution {
+        public Stack<Character> stack = new Stack<>();
+    
+        public boolean isValid(String s) {
+            char c;
+            for (int i = 0; i < s.length(); i++) {
+                c = s.charAt(i);
+                if (c == '(' || c == '{' || c == '[') {
+                    stack.push(c);
+                } else if (stack.isEmpty()) {
+                    return false;
+                } else if (c == ')') {
+                    if (stack.pop() != '(') {
+                        return false;
+                    }
+                } else if (c == '}') {
+                    if (stack.pop() != '{') {
+                        return false;
+                    }
+                } else if (c == ']') {
+                    if (stack.pop() != '[') {
+                        return false;
+                    }
+                }
+            }
+            return stack.isEmpty();
+        }
+    }
+    ```
+
+    - 上面是将左括号入栈的写法，可以看到不是很简练。下面是看到左括号，就将相应的右括号入栈的写法：
+
+      ```java
+      class Solution {
+          public Stack<Character> stack = new Stack<>();
+      
+          public boolean isValid(String s) {
+              char c, tmpt;
+              for (int i = 0; i < s.length(); i++) {
+                  c = s.charAt(i);
+                  if (c == '(') {
+                      stack.push(')');
+                  } else if (c == '{') {
+                      stack.push('}');
+                  } else if (c == '[') {
+                      stack.push(']');
+                  } else if (stack.isEmpty() || stack.peek() != c) {
+                      return false;
+                  } else {
+                      stack.pop();
+                  }
+              }
+              return stack.isEmpty();
+          }
+      }
+      ```
+
+- **由于栈结构的特殊性，非常适合做对称匹配类的题目**。
+
+### 4.删除字符串中的所有相邻重复项
+
+#### 题目
+
+- 给出由小写字母组成的字符串 `S`，重复项删除操作会选择两个相邻且相同的字母，并删除它们。
+
+  在 S 上反复执行重复项删除操作，直到无法继续删除。
+
+  在完成所有重复项删除操作后返回最终的字符串。答案保证唯一。
+
+  **示例：**
+
+  ```
+  输入："abbaca"
+  输出："ca"
+  解释：
+  例如，在 "abbaca" 中，我们可以删除 "bb" 由于两字母相邻且相同，这是此时唯一可以执行删除操作的重复项。之后我们得到字符串 "aaca"，其中又只有 "aa" 可以执行重复项删除操作，所以最后的字符串为 "ca"。
+  ```
+
+  **提示：**
+
+  1. `1 <= S.length <= 20000`
+  2. `S` 仅由小写英文字母组成。
+
+#### 思路
+
+- 非常适合用栈来解决。
+
+  ```java
+  class Solution {
+      public ArrayDeque<Character> deque = new ArrayDeque<>();
+  
+      public String removeDuplicates(String s) {
+          StringBuilder sb = new StringBuilder();
+          char c;
+          for (int i = 0; i < s.length(); i++) {
+              c = s.charAt(i);
+              if (!deque.isEmpty() && c == deque.peek()) {
+                  deque.pop();
+              } else {
+                  deque.push(c);
+              }
+          }
+          while (!deque.isEmpty()) {
+              c = deque.pop();
+              sb.append(c);
+          }
+          return sb.reverse().toString();
+      }
+  }
+  ```
+
+### 5.逆波兰表达式求值
+
+#### 题目
+
+- 给你一个字符串数组 `tokens` ，表示一个根据 [逆波兰表示法](https://baike.baidu.com/item/逆波兰式/128437) 表示的算术表达式。
+
+  请你计算该表达式。返回一个表示表达式值的整数。
+
+  **注意：**
+
+  - 有效的算符为 `'+'`、`'-'`、`'*'` 和 `'/'` 。
+  - 每个操作数（运算对象）都可以是一个整数或者另一个表达式。
+  - 两个整数之间的除法总是 **向零截断** 。
+  - 表达式中不含除零运算。
+  - 输入是一个根据逆波兰表示法表示的算术表达式。
+  - 答案及所有中间计算结果可以用 **32 位** 整数表示。
+
+  **示例 1：**
+
+  ```
+  输入：tokens = ["2","1","+","3","*"]
+  输出：9
+  解释：该算式转化为常见的中缀算术表达式为：((2 + 1) * 3) = 9
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：tokens = ["4","13","5","/","+"]
+  输出：6
+  解释：该算式转化为常见的中缀算术表达式为：(4 + (13 / 5)) = 6
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：tokens = ["10","6","9","3","+","-11","*","/","*","17","+","5","+"]
+  输出：22
+  解释：该算式转化为常见的中缀算术表达式为：
+    ((10 * (6 / ((9 + 3) * -11))) + 17) + 5
+  = ((10 * (6 / (12 * -11))) + 17) + 5
+  = ((10 * (6 / -132)) + 17) + 5
+  = ((10 * 0) + 17) + 5
+  = (0 + 17) + 5
+  = 17 + 5
+  = 22
+  ```
+
+  **提示：**
+
+  - `1 <= tokens.length <= 104`
+  - `tokens[i]` 是一个算符（`"+"`、`"-"`、`"*"` 或 `"/"`），或是在范围 `[-200, 200]` 内的一个整数
+
+  **逆波兰表达式：**
+
+  逆波兰表达式是一种后缀表达式，所谓后缀就是指算符写在后面。
+
+  - 平常使用的算式则是一种中缀表达式，如 `( 1 + 2 ) * ( 3 + 4 )` 。
+  - 该算式的逆波兰表达式写法为 `( ( 1 2 + ) ( 3 4 + ) * )` 。
+
+  逆波兰表达式主要有以下两个优点：
+
+  - 去掉括号后表达式无歧义，上式即便写成 `1 2 + 3 4 + * `也可以依据次序计算出正确结果。
+  - 适合用栈操作运算：遇到数字则入栈；遇到算符则取出栈顶两个数字进行计算，并将结果压入栈中
+
+#### 思路
+
+- 没啥好说的，数据结构课程的内容。
+
+  ```java
+  class Solution {
+      public ArrayDeque<Integer> deque = new ArrayDeque<>();
+  
+      public int evalRPN(String[] tokens) {
+          String s;
+          Integer i1, i2, num;
+          for (int i = 0; i < tokens.length; i++) {
+              s = tokens[i];
+              if (s.equals("+")) {
+                  num = (deque.pop() + deque.pop());
+                  deque.push(num);
+              } else if (s.equals("-")) {
+                  num = (-deque.pop() + deque.pop());
+                  deque.push(num);
+              } else if (s.equals("*")) {
+                  num = (deque.pop() * deque.pop());
+                  deque.push(num);
+              } else if (s.equals("/")) {
+                  i1 = deque.pop();
+                  i2 = deque.pop();
+                  num = (i2 / i1);
+                  deque.push(num);
+              } else {
+                  deque.push(Integer.parseInt(s));
+              }
+          }
+          return deque.pop();
+      }
+  }
+  ```
+
+### 6.滑动窗口最大值(单调队列)
+
+#### 题目
+
+- 给你一个整数数组 `nums`，有一个大小为 `k` 的滑动窗口从数组的最左侧移动到数组的最右侧。你只可以看到在滑动窗口内的 `k` 个数字。滑动窗口每次只向右移动一位。
+
+  返回 滑动窗口中的最大值 。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [1,3,-1,-3,5,3,6,7], k = 3
+  输出：[3,3,5,5,6,7]
+  解释：
+  滑动窗口的位置                最大值
+  ---------------               -----
+  [1  3  -1] -3  5  3  6  7       3
+   1 [3  -1  -3] 5  3  6  7       3
+   1  3 [-1  -3  5] 3  6  7       5
+   1  3  -1 [-3  5  3] 6  7       5
+   1  3  -1  -3 [5  3  6] 7       6
+   1  3  -1  -3  5 [3  6  7]      7
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [1], k = 1
+  输出：[1]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 105`
+  - `-104 <= nums[i] <= 104`
+  - `1 <= k <= nums.length`
+
+#### 思路
+
+- 这是使用单调队列的经典题目。
+
+  - 我们需要一个队列，这个队列放入窗口里的元素，然后随着窗口的移动，队列中的元素也一进一出，每次移动之后，队列告诉我们里面的最大值是什么。
+
+    - 再分析一下，根据队列 FIFO 的特性，队列里的元素一定是要排序的，而且要最大值放在出队口，要不然怎么知道最大值呢。但是我们在往队列里添加元素的时候，未必能让当前窗口中最大的元素放在出队口。
+
+    - 所以，其实**队列没有必要维护窗口里的所有元素，只需要维护有可能成为窗口里最大值的元素就可以了，保证有可能成为窗口里最大值的元素在出队口即可**。这个维护元素单调递减的队列就叫做**单调队列，即单调递减或单调递增的队列。** 
+
+    - 举个例子，以题目示例为例，输入: nums = [1, 3, -1, -3, 5, 3, 6, 7] 和 k = 3。
+
+      [1  3  -1] -3  5  3  6  7     3			1入队，3入队，因为 3 > 1，所以 1 出队，然后 -1 入队。最后出队口元素为 3。
+       1 [3  -1  -3] 5  3  6  7     3			因为窗口滑动，所以 1 出队，但 1 已经被出队了，接着 -3 入队。最后出队口元素为 3。
+       1  3 [-1  -3  5] 3  6  7     5			因为窗口滑动，所以 3 出队，接着 5 入队，因为 5 > -1，5 > -3，所以 -1、-3 出队。最后出队口元素为 5。
+       1  3  -1 [-3  5  3] 6  7     5			因为窗口滑动，所以 -1 出队，但 -1 已经被出队了，接着 3 入队。最后出队口元素为 5。
+       1  3  -1  -3 [5  3  6] 7     6			因为窗口滑动，所以 -3 出队，但 -3 已经被出队了，接着 6 入队，因为 6 > 5，6 > 3，所以 5、3 出队。最后出队口元素为 6。
+       1  3  -1  -3  5 [3  6  7]    7			因为窗口滑动，所以 5 出队，但 5 已经被出队了，接着 7 入队，因为 7 > 6，所以 6 出队。最后出队口元素为7。
+
+  ```java
+  class Solution {
+      public int[] maxSlidingWindow(int[] nums, int k) {
+          int[] result = new int[nums.length - k + 1];
+          int index = 0;
+          MyQueue queue = new MyQueue();
+          // 初始化queue
+          for (int i = 0; i < k; i++) {
+              queue.push(nums[i]);
+          }
+          result[index++] = queue.peek();
+          for (int i = k; i < nums.length; i++) {
+              // 窗口开始滑动
+              queue.pop(nums[i - k]);
+              queue.push(nums[i]);
+              result[index++] = queue.peek();
+          }
+          return result;
+      }
+  }
+  
+  // 自己实现单调队列
+  class MyQueue {
+      private Deque<Integer> deque = new ArrayDeque<>();
+  
+      public void push(Integer elem) {
+          // 在push新元素之前，将队列中所有小于它的都先从队列中去除
+          // 从后面remove，因为存在这种情况：比如此时队列元素为3,1，然后2将要入队，比1大，所以1弹出，此时队列：3,2
+          while (!deque.isEmpty() && deque.peekLast() < elem) {
+              deque.removeLast();
+          }
+          deque.addLast(elem);
+      }
+  
+      public Integer pop(Integer elem) {
+          Integer i = this.peek();
+          if (i.equals(elem)) { // 因为元素有可能在push方法中被提前pop掉了
+              return deque.removeFirst();
+          }
+          return null;
+      }
+  
+      public Integer peek() {
+          return deque.peekFirst();
+      }
+  }
+  ```
+
+  - **要注意在新元素入队之前，将队列中小于它的都先从队列中去除，而且是从后面 remove**。
+
+### 7.★前 K 个高频元素(堆)
+
+#### 题目
+
+- 给你一个整数数组 `nums` 和一个整数 `k` ，请你返回其中出现频率前 `k` 高的元素。你可以按 **任意顺序** 返回答案。
+
+  **示例 1:**
+
+  ```
+  输入: nums = [1,1,1,2,2,3], k = 2
+  输出: [1,2]
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: nums = [1], k = 1
+  输出: [1]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 105`
+  - `k` 的取值范围是 `[1, 数组中不相同的元素的个数]`
+  - 题目数据保证答案唯一，换句话说，数组中前 `k` 个高频元素的集合是唯一的
+
+  **进阶：**你所设计算法的时间复杂度 **必须** 优于 `O(n log n)` ，其中 `n` 是数组大小。
+
+#### 思路
+
+- 这道题目主要涉及到如下三块内容：
+
+  1. 统计元素出现频率
+
+     - 首先统计元素出现的频率，这一类的问题可以使用 map 来进行统计。
+
+  2. 对频率排序
+
+     - 然后是对频率进行排序，这里我们可以使用一种容器适配器就是**优先级队列**。
+     - 优先级队列其实**就是一个披着队列外衣的堆**，因为优先级队列对外接口只是从队头取元素，从队尾添加元素，再无其他取元素的方式，看起来就是一个队列。
+       - 优先级队列内部元素是自动依照元素的权值排列。
+
+  3. 找出前K个高频元素
+
+     - 此时要思考一下，是使用小顶堆呢，还是大顶堆？
+
+       - 有的同学一想，题目要求前 K 个高频元素，那么果断用大顶堆啊。
+
+         那么问题来了，定义一个大小为 k 的大顶堆，在每次移动更新大顶堆的时候，每次弹出都把最大的元素弹出去了，那么怎么保留下来前 K 个高频元素呢。而且使用大顶堆就要把所有元素都进行排序，那能不能只排序 k 个元素呢？
+
+       - **所以我们要用小顶堆，因为要统计最大前k个元素，小顶堆每次将最小的元素弹出，最后小顶堆里积累的就是前k个最大元素。** 
+
+  ```java
+  class Solution {
+      public int[] topKFrequent(int[] nums, int k) {
+          int[] result = new int[k];
+          int index = 0;
+          Map<Integer, Integer> map = new HashMap<>();
+          Queue<Map.Entry<Integer, Integer>> pq = new PriorityQueue<>(new Comparator<Map.Entry<Integer, Integer>>() {
+              @Override
+              public int compare(Map.Entry<Integer, Integer> e1, Map.Entry<Integer, Integer> e2) {
+                  return e1.getValue() - e2.getValue(); // 用小顶堆
+              }
+          });
+          // 1.统计元素的频率
+          for (int i = 0; i < nums.length; i++) {
+              map.put(nums[i], map.getOrDefault(nums[i], 0) + 1);
+          }
+          // 2.根据元素频率对元素排序
+          Set<Map.Entry<Integer, Integer>> set = map.entrySet();
+          Iterator<Map.Entry<Integer, Integer>> it = set.iterator();
+          while (it.hasNext()) {
+              pq.add(it.next());
+              if (pq.size() > k) {
+                  pq.poll();
+              }
+          }
+          // 3.取出前k个高频元素
+          while (!pq.isEmpty()) {
+              Map.Entry<Integer, Integer> entry = pq.poll();
+              result[index++] = entry.getKey();
+          }
+          return result;
+      }
+  }
+  ```
+
+### 8.简化路径
+
+#### 题目
+
+- 给你一个字符串 `path` ，表示指向某一文件或目录的 Unix 风格 **绝对路径** （以 `'/'` 开头），请你将其转化为更加简洁的规范路径。
+
+  在 Unix 风格的文件系统中，一个点（`.`）表示当前目录本身；此外，两个点 （`..`） 表示将目录切换到上一级（指向父目录）；两者都可以是复杂相对路径的组成部分。任意多个连续的斜杠（即，`'//'`）都被视为单个斜杠 `'/'` 。 对于此问题，任何其他格式的点（例如，`'...'`）均被视为文件/目录名称。
+
+  请注意，返回的 **规范路径** 必须遵循下述格式：
+
+  - 始终以斜杠 `'/'` 开头。
+  - 两个目录名之间必须只有一个斜杠 `'/'` 。
+  - 最后一个目录名（如果存在）**不能** 以 `'/'` 结尾。
+  - 此外，路径仅包含从根目录到目标文件或目录的路径上的目录（即，不含 `'.'` 或 `'..'`）。
+
+  返回简化后得到的 **规范路径** 。
+
+  **示例 1：**
+
+  ```
+  输入：path = "/home/"
+  输出："/home"
+  解释：注意，最后一个目录名后面没有斜杠。 
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：path = "/../"
+  输出："/"
+  解释：从根目录向上一级是不可行的，因为根目录是你可以到达的最高级。
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：path = "/home//foo/"
+  输出："/home/foo"
+  解释：在规范路径中，多个连续斜杠需要用一个斜杠替换。
+  ```
+
+  **示例 4：**
+
+  ```
+  输入：path = "/a/./b/../../c/"
+  输出："/c"
+  ```
+
+  **提示：**
+
+  - `1 <= path.length <= 3000`
+  - `path` 由英文字母，数字，`'.'`，`'/'` 或 `'_'` 组成。
+  - `path` 是一个有效的 Unix 风格绝对路径。
+
+#### 思路
+
+- 一开始想的是用栈，后面发现不用这么麻烦，用列表就行。
+
+  ```java
+  class Solution {
+      public String simplifyPath(String path) {
+          StringBuilder sb = new StringBuilder();
+          LinkedList<String> list = new LinkedList<>();
+          //1.将路径上的任意多个连续斜杠转换为单斜杠
+          path = path.replaceAll("//+", "/");
+          //2.根据单斜杠对路径进行拆分
+          String[] split = path.split("/");
+          //3.利用LinkedList完成解题
+          for (int i = 0; i < split.length; i++) {
+              if (split[i].equals("") || split[i].equals(".")) {
+                  continue;
+              } else if (split[i].equals("..")) {
+                  if (list.isEmpty()) {
+                      continue;
+                  } else {
+                      list.removeLast();
+                  }
+              } else {
+                  list.addLast(split[i]);
+              }
+          }
+          if (list.isEmpty()) {
+              return "/";
+          }
+          while (!list.isEmpty()) {
+              sb.append("/");
+              sb.append(list.removeFirst());
+          }
+          return sb.toString();
+      }
+  }
+  ```
