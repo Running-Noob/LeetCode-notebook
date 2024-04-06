@@ -1078,6 +1078,67 @@
   }
   ```
 
+### 3.2 反转链表 II
+
+#### 题目
+
+- 给你单链表的头指针 `head` 和两个整数 `left` 和 `right` ，其中 `left <= right` 。请你反转从位置 `left` 到位置 `right` 的链表节点，返回 **反转后的链表** 。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/02/19/rev2ex2.jpg)
+
+  ```
+  输入：head = [1,2,3,4,5], left = 2, right = 4
+  输出：[1,4,3,2,5]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：head = [5], left = 1, right = 1
+  输出：[5]
+  ```
+
+  **提示：**
+
+  - 链表中节点数目为 `n`
+  - `1 <= n <= 500`
+  - `-500 <= Node.val <= 500`
+  - `1 <= left <= right <= n`
+
+#### 思路
+
+- 和 `3.反转链表` 的不同之处在于，需要额外定义两个指针，分别指向 `left - 1` 所在的结点和 `left` 所在的结点，才能完成链表的部分反转。
+
+  ```java
+  class Solution {
+      public ListNode reverseBetween(ListNode head, int left, int right) {
+          if (head == null || head.next == null) { // 排除特殊情况
+              return head;
+          }
+          ListNode dummyHead = new ListNode(-1, head); // 增加一个虚拟头结点
+          ListNode pre, cur, next, tmpt1, tmpt2;
+          tmpt1 = dummyHead;
+          for (int i = 0; i < left - 1; i++) {
+              tmpt1 = tmpt1.next; // tmpt1用于指向left左边的结点
+          }
+          tmpt2 = tmpt1.next; // tmpt2用于指向left所在的结点
+          pre = tmpt2;
+          cur = tmpt2.next;
+          for (int i = 0; i < right - left; i++) { // 反转的次数
+              next = cur.next;
+              cur.next = pre;
+              pre = cur;
+              cur = next;
+          }
+          tmpt1.next = pre;
+          tmpt2.next = cur;
+          return dummyHead.next;
+      }
+  }
+  ```
+
 ### 4.两两交换链表中的结点
 
 #### 题目
