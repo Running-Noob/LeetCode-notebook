@@ -3383,7 +3383,7 @@ public class Solution {
           Set<Map.Entry<Integer, Integer>> set = map.entrySet();
           Iterator<Map.Entry<Integer, Integer>> it = set.iterator();
           while (it.hasNext()) {
-              pq.add(it.next());
+              pq.offer(it.next());
               if (pq.size() > k) {
                   pq.poll();
               }
@@ -3775,3 +3775,792 @@ public class TreeNode {
     - **这是因为前序遍历中访问节点（遍历节点）和处理节点（将元素放进result数组中）可以同步处理，但是中序就无法做到同步！**
 
 ### 3.二叉树的统一迭代法
+
+- 二叉树的统一迭代法就在于判断当前弹栈元素是不是第一次弹栈，如果是第一次弹栈，就要进行相应的再压栈处理，否则就输出到结果集中。
+
+- 可以看到前中后序遍历的实现代码都可以是大同小异的：
+
+  - 前序遍历：
+
+    ```java
+    class Solution {
+        private List<Integer> result = new ArrayList<>();
+        private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+        private Deque<TreeNode> deque = new ArrayDeque<>();
+    
+        public List<Integer> preorderTraversal(TreeNode root) {
+            if (root == null) { // 先排除特殊情况
+                return result;
+            }
+            deque.push(root);
+            while (!deque.isEmpty()) {
+                TreeNode node = deque.pop();
+                if (!tmpt.contains(node)) { // 结点是第一次出栈
+                    tmpt.add(node);
+                    // 如果结点是第一次出栈，就按照node.right，node.left，node的顺序入栈
+                    if (node.right != null) {
+                        deque.push(node.right);
+                    }
+                    if (node.left != null) {
+                        deque.push(node.left);
+                    }
+                    deque.push(node);
+                } else { // 结点是第二次出栈
+                    result.add(node.val);
+                }
+            }
+            return result;
+        }
+    }
+    ```
+
+  - 中序遍历：
+
+    ```java
+    class Solution {
+        private List<Integer> result = new ArrayList<>();
+        private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+        private Deque<TreeNode> deque = new ArrayDeque<>();
+    
+        public List<Integer> inorderTraversal(TreeNode root) {
+            if (root == null) { // 先排除特殊情况
+                return result;
+            }
+            deque.push(root);
+            while (!deque.isEmpty()) {
+                TreeNode node = deque.pop();
+                if (!tmpt.contains(node)) { // 结点是第一次出栈
+                    tmpt.add(node);
+                    // 如果结点是第一次出栈，就按照node.right，node，node.left的顺序入栈
+                    if (node.right != null) {
+                        deque.push(node.right);
+                    }
+                    deque.push(node);
+                    if (node.left != null) {
+                        deque.push(node.left);
+                    }
+                } else { // 结点是第二次出栈
+                    result.add(node.val);
+                }
+            }
+            return result;
+        }
+    }
+    ```
+
+  - 后序遍历：
+
+    ```java
+    class Solution {
+        private List<Integer> result = new ArrayList<>();
+        private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+        private Deque<TreeNode> deque = new ArrayDeque<>();
+    
+        public List<Integer> postorderTraversal(TreeNode root) {
+            if (root == null) { // 先排除特殊情况
+                return result;
+            }
+            deque.push(root);
+            while (!deque.isEmpty()) {
+                TreeNode node = deque.pop();
+                if (!tmpt.contains(node)) { // 结点是第一次出栈
+                    tmpt.add(node);
+                    // 如果结点是第一次出栈，就按照node，node.right，node.left的顺序入栈
+                    deque.push(node);
+                    if (node.right != null) {
+                        deque.push(node.right);
+                    }
+                    if (node.left != null) {
+                        deque.push(node.left);
+                    }
+                } else { // 结点是第二次出栈
+                    result.add(node.val);
+                }
+            }
+            return result;
+        }
+    }
+    ```
+
+### 4.二叉树的层序遍历(队列)
+
+- 层序遍历一个二叉树。就是从左到右一层一层的去遍历二叉树。这种遍历的方式和我们之前讲过的都不太一样。
+
+  - 需要借用一个辅助数据结构即队列来实现，**队列先进先出，符合一层一层遍历的逻辑，而用栈先进后出适合模拟深度优先遍历也就是递归的逻辑。**
+
+
+#### 层序遍历的万用模板
+
+```java
+class Solution {
+    private List<List<Integer>> result = new ArrayList<>();
+    private ArrayDeque<TreeNode> deque = new ArrayDeque<>(); // 辅助队列
+
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        if (root == null) { // 排除特殊情况
+            return result;
+        }
+        deque.addLast(root);
+        while (!deque.isEmpty()) {
+            List<Integer> itemList = new ArrayList<>(); // 保存每一层的结果
+            int len = deque.size(); // 用于判断当前层是不是遍历完了
+            while (len > 0) {
+                TreeNode node = deque.removeFirst();
+                itemList.add(node.val);
+                if (node.left != null) {
+                    deque.addLast(node.left);
+                }
+                if (node.right != null) {
+                    deque.addLast(node.right);
+                }
+                len--;
+            }
+            result.add(itemList);
+        }
+        return result;
+    }
+}
+```
+
+#### 4.1 二叉树的层次遍历II
+
+##### 题目
+
+- 给你二叉树的根节点 `root` ，返回其节点值 **自底向上的层序遍历** 。 （即按从叶子节点所在层到根节点所在的层，逐层从左向右遍历）
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/02/19/tree1.jpg)
+
+  ```
+  输入：root = [3,9,20,null,null,15,7]
+  输出：[[15,7],[9,20],[3]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：root = [1]
+  输出：[[1]]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：root = []
+  输出：[]
+  ```
+
+  **提示：**
+
+  - 树中节点数目在范围 `[0, 2000]` 内
+  - `-1000 <= Node.val <= 1000`
+
+##### 思路
+
+- 就是在 `4.二叉树的层序遍历` 的基础上，增加一个 `Collections.reverse()` 方法而已。
+
+  ```java
+  class Solution {
+      private List<List<Integer>> result = new ArrayList<>();
+      private ArrayDeque<TreeNode> deque = new ArrayDeque<>();
+  
+      public List<List<Integer>> levelOrderBottom(TreeNode root) {
+          if (root == null) { // 排除特殊情况
+              return result;
+          }
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              List<Integer> itemList = new ArrayList<>();
+              int len = deque.size();
+              while (len > 0) {
+                  TreeNode node = deque.removeFirst();
+                  itemList.add(node.val);
+                  if (node.left != null) {
+                      deque.add(node.left);
+                  }
+                  if (node.right != null) {
+                      deque.add(node.right);
+                  }
+                  len--;
+              }
+              result.add(itemList);
+          }
+          Collections.reverse(result);
+          return result;
+      }
+  }
+  ```
+
+#### 4.2 二叉树的右视图
+
+##### 题目
+
+- 给定一个二叉树的 **根节点** `root`，想象自己站在它的右侧，按照从顶部到底部的顺序，返回从右侧所能看到的节点值。
+
+  **示例 1:**
+
+  ![img](https://assets.leetcode.com/uploads/2021/02/14/tree.jpg)
+
+  ```
+  输入: [1,2,3,null,5,null,4]
+  输出: [1,3,4]
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: [1,null,3]
+  输出: [1,3]
+  ```
+
+  **示例 3:**
+
+  ```
+  输入: []
+  输出: []
+  ```
+
+  **提示:**
+
+  - 二叉树的节点个数的范围是 `[0,100]`
+  - `-100 <= Node.val <= 100` 
+
+##### 思路
+
+- 层序遍历的时候，判断是否遍历到单层的最后面的元素，如果是，就放进 result 数组中，随后返回 result 就可以了。
+
+  ```java
+  class Solution {
+      public List<Integer> rightSideView(TreeNode root) {
+          List<Integer> result = new ArrayList<>();
+          if (root == null) { // 排除特殊情况
+              return result;
+          }
+          ArrayDeque<TreeNode> deque = new ArrayDeque<>();
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              int len = deque.size(); // 记录当前层级的元素个数
+              while (len > 0) {
+                  TreeNode node = deque.removeFirst();
+                  if (node.left != null) {
+                      deque.addLast(node.left);
+                  }
+                  if (node.right != null) {
+                      deque.addLast(node.right);
+                  }
+                  len--;
+                  if (len == 0) { // len为0表示是当前层级的最后一个元素
+                      result.add(node.val);
+                  }
+              }
+          }
+          return result;
+      }
+  }
+  ```
+
+#### 4.3 二叉树的层平均值
+
+##### 题目
+
+- 给定一个非空二叉树的根节点 `root` , 以数组的形式返回每一层节点的平均值。与实际答案相差 `10^(-5)` 以内的答案可以被接受。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/03/09/avg1-tree.jpg)
+
+  ```
+  输入：root = [3,9,20,null,null,15,7]
+  输出：[3.00000,14.50000,11.00000]
+  解释：第 0 层的平均值为 3,第 1 层的平均值为 14.5,第 2 层的平均值为 11 。
+  因此返回 [3, 14.5, 11] 。
+  ```
+
+  **示例 2:**
+
+  ![img](https://assets.leetcode.com/uploads/2021/03/09/avg2-tree.jpg)
+
+  ```
+  输入：root = [3,9,20,15,7]
+  输出：[3.00000,14.50000,11.00000]
+  ```
+
+  **提示：**
+
+  - 树中节点数量在 `[1, 104]` 范围内
+  - `-2^31 <= Node.val <= 2^31 - 1`
+
+##### 思路
+
+- 本题就是层序遍历的时候把一层求个总和在取一个均值。
+
+  ```java
+  class Solution {
+      public List<Double> averageOfLevels(TreeNode root) {
+          List<Double> result = new ArrayList<>();
+          ArrayDeque<TreeNode> deque = new ArrayDeque<>();
+          if (root == null) { // 排除特殊情况
+              return result;
+          }
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              int len = deque.size(); // 用于判断当前层级是否遍历完
+              int num = len; // 用于计算平均数
+              double sum = 0; // 用于计算当前层的总和
+              while (len > 0) {
+                  TreeNode node = deque.removeFirst();
+                  sum += node.val;
+                  if (node.left != null) {
+                      deque.addLast(node.left);
+                  }
+                  if (node.right != null) {
+                      deque.addLast(node.right);
+                  }
+                  len--;
+              }
+              result.add(sum / num);
+          }
+          return result;
+      }
+  }
+  ```
+
+#### 4.4 N叉树的层序遍历
+
+##### 题目
+
+- 给定一个 N 叉树，返回其节点值的层序遍历。（即从左到右，逐层遍历）。
+
+  树的序列化输入是用层序遍历，每组子节点都由 null 值分隔（参见示例）。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2018/10/12/narytreeexample.png)
+
+  ```
+  输入：root = [1,null,3,2,4,null,5,6]
+  输出：[[1],[3,2,4],[5,6]]
+  ```
+
+  **示例 2：**
+
+  ![img](https://assets.leetcode.com/uploads/2019/11/08/sample_4_964.png)
+
+  ```
+  输入：root = [1,null,2,3,4,5,null,null,6,7,null,8,null,9,10,null,null,11,null,12,null,13,null,null,14]
+  输出：[[1],[2,3,4,5],[6,7,8,9,10],[11,12,13],[14]]
+  ```
+
+  **提示：**
+
+  - 树的高度不会超过 `1000`
+  - 树的节点总数在 `[0, 10^4]` 之间
+
+##### 思路
+
+- 这道题依旧是模板题，只不过一个节点有多个孩子了。
+
+  ```java
+  class Solution {
+      public List<List<Integer>> levelOrder(Node root) {
+          List<List<Integer>> result = new ArrayList<>();
+          ArrayDeque<Node> deque = new ArrayDeque<>();
+          if (root == null) { // 排除特殊情况
+              return result;
+          }
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              List<Integer> itemList = new ArrayList<>();
+              int len = deque.size();
+              while (len > 0) {
+                  Node node = deque.removeFirst();
+                  itemList.add(node.val);
+                  List<Node> children = node.children;
+                  for (int i = 0; i < children.size(); i++) {
+                      deque.addLast(children.get(i));
+                  }
+                  len--;
+              }
+              result.add(itemList);
+          }
+          return result;
+      }
+  }
+  ```
+
+#### 4.5 在每个树行中找最大值
+
+##### 题目
+
+- 给定一棵二叉树的根节点 `root` ，请找出该二叉树中每一层的最大值。
+
+  **示例1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/08/21/largest_e1.jpg)
+
+  ```
+  输入: root = [1,3,2,5,3,null,9]
+  输出: [1,3,9]
+  ```
+
+  **示例2：**
+
+  ```
+  输入: root = [1,2,3]
+  输出: [1,3]
+  ```
+
+  **提示：**
+
+  - 二叉树的节点个数的范围是 `[0,104]`
+  - `-2^31 <= Node.val <= 2^31 - 1`
+
+##### 思路
+
+- 层序遍历，取每一层的最大值。
+
+  ```java
+  class Solution {
+      public List<Integer> largestValues(TreeNode root) {
+          List<Integer> result = new ArrayList<>();
+          ArrayDeque<TreeNode> deque = new ArrayDeque<>();
+          if (root == null) { // 排除特殊情况
+              return result;
+          }
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              int max = Integer.MIN_VALUE;
+              int len = deque.size(); // 用于判断当前层是否遍历完
+              while (len > 0) {
+                  TreeNode node = deque.removeFirst();
+                  if (node.val > max) {
+                      max = node.val;
+                  }
+                  if (node.left != null) {
+                      deque.addLast(node.left);
+                  }
+                  if (node.right != null) {
+                      deque.addLast(node.right);
+                  }
+                  len--;
+              }
+              result.add(max);
+          }
+          return result;
+      }
+  }
+  ```
+
+#### 4.6 填充每个节点的下一个右侧节点指针II
+
+##### 题目
+
+- 给定一个二叉树：
+
+  ```
+  struct Node {
+    int val;
+    Node *left;
+    Node *right;
+    Node *next;
+  }
+  ```
+
+  填充它的每个 next 指针，让这个指针指向其下一个右侧节点。如果找不到下一个右侧节点，则将 next 指针设置为 `NULL` 。
+
+  初始状态下，所有 next 指针都被设置为 `NULL` 。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2019/02/15/117_sample.png)
+
+  ```
+  输入：root = [1,2,3,4,5,null,7]
+  输出：[1,#,2,3,#,4,5,7,#]
+  解释：给定二叉树如图 A 所示，你的函数应该填充它的每个 next 指针，以指向其下一个右侧节点，如图 B 所示。序列化输出按层序遍历顺序（由 next 指针连接），'#' 表示每层的末尾。
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：root = []
+  输出：[]
+  ```
+
+  **提示：**
+
+  - 树中的节点数在范围 `[0, 6000]` 内
+  - `-100 <= Node.val <= 100`
+
+##### 思路
+
+- 依然套用层序遍历的模板，只不过要注意当 len 为 0 时，要让当前出队的结点的 next 指向 null。
+
+  ```java
+  class Solution {
+      public Node connect(Node root) {
+          ArrayDeque<Node> deque = new ArrayDeque<>();
+          if (root == null) { // 排除特殊情况
+              return null;
+          }
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              int len = deque.size();
+              while (len > 0) {
+                  Node n1 = deque.removeFirst();
+                  Node n2 = deque.peekFirst();
+                  if (n1.left != null) {
+                      deque.addLast(n1.left);
+                  }
+                  if (n1.right != null) {
+                      deque.addLast(n1.right);
+                  }
+                  len--;
+                  if (len == 0) {
+                      n1.next = null;
+                  } else {
+                      n1.next = n2;
+                  }
+              }
+          }
+          return root;
+      }
+  }
+  ```
+
+#### 4.7 二叉树的最大深度
+
+##### 题目
+
+- 给定一个二叉树 `root` ，返回其最大深度。
+
+  二叉树的 **最大深度** 是指从根节点到最远叶子节点的最长路径上的节点数。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/11/26/tmp-tree.jpg)
+
+   
+
+  ```
+  输入：root = [3,9,20,null,null,15,7]
+  输出：3
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：root = [1,null,2]
+  输出：2
+  ```
+
+  **提示：**
+
+  - 树中节点的数量在 `[0, 10^4]` 区间内。
+  - `-100 <= Node.val <= 100`
+
+##### 思路
+
+- 使用迭代法的话，使用层序遍历是最为合适的，因为最大的深度就是二叉树的层数，和层序遍历的方式极其吻合。
+
+  - 在二叉树中，一层一层的来遍历二叉树，记录一下遍历的层数就是二叉树的深度。
+
+  ```java
+  class Solution {
+      public int maxDepth(TreeNode root) {
+          if (root == null) { // 排除特殊情况
+              return 0;
+          }
+          int result = 0;
+          ArrayDeque<TreeNode> deque = new ArrayDeque<>();
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              int len = deque.size();
+              while (len > 0) {
+                  TreeNode node = deque.removeFirst();
+                  if (node.left != null) {
+                      deque.addLast(node.left);
+                  }
+                  if (node.right != null) {
+                      deque.addLast(node.right);
+                  }
+                  len--;
+                  if (len == 0) {
+                      result += 1;
+                  }
+              }
+          }
+          return result;
+      }
+  }
+  ```
+
+#### 4.8 二叉树的最小深度
+
+##### 题目
+
+- 给定一个二叉树，找出其最小深度。
+
+  最小深度是从根节点到最近叶子节点的最短路径上的节点数量。
+
+  **说明：**叶子节点是指没有子节点的节点。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/10/12/ex_depth.jpg)
+
+  ```
+  输入：root = [3,9,20,null,null,15,7]
+  输出：2
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：root = [2,null,3,null,4,null,5,null,6]
+  输出：5
+  ```
+
+  **提示：**
+
+  - 树中节点数的范围在 `[0, 105]` 内
+  - `-1000 <= Node.val <= 1000`
+
+##### 思路
+
+- 相对于 `4.7 二叉树的最大深度`，本题还也可以使用层序遍历的方式来解决，思路是一样的。
+
+  - **需要注意的是，只有当左右孩子都为空的时候，才说明遍历的最低点了。如果其中一个孩子为空则不是最低点**
+
+  ```java
+  class Solution {
+      public int minDepth(TreeNode root) {
+          if (root == null) {
+              return 0;
+          }
+          int result = 0;
+          ArrayDeque<TreeNode> deque = new ArrayDeque<>();
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              int len = deque.size();
+              while (len > 0) {
+                  TreeNode node = deque.removeFirst();
+                  // 左右子结点都为空，表示已经到最小深度处了
+                  if (node.left == null && node.right == null) {
+                      result++;
+                      return result;
+                  }
+                  if (node.left != null) {
+                      deque.addLast(node.left);
+                  }
+                  if (node.right != null) {
+                      deque.addLast(node.right);
+                  }
+                  len--;
+                  if (len == 0) {
+                      result++;
+                  }
+              }
+          }
+          return result;
+      }
+  }
+  ```
+
+### 5.翻转二叉树
+
+#### 题目
+
+- 给你一棵二叉树的根节点 `root` ，翻转这棵二叉树，并返回其根节点。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/03/14/invert1-tree.jpg)
+
+  ```
+  输入：root = [4,2,7,1,3,6,9]
+  输出：[4,7,2,9,6,3,1]
+  ```
+
+  **示例 2：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/03/14/invert2-tree.jpg)
+
+  ```
+  输入：root = [2,1,3]
+  输出：[2,3,1]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：root = []
+  输出：[]
+  ```
+
+  **提示：**
+
+  - 树中节点数目范围在 `[0, 100]` 内
+  - `-100 <= Node.val <= 100`
+
+#### 思路
+
+- 想要翻转二叉树，其实就把每一个节点的左右孩子交换一下就可以了。遍历的过程中去翻转每一个节点的左右孩子就可以达到整体翻转的效果。
+
+  - 关键在于遍历顺序，前中后序或层序应该选哪一种遍历顺序？
+  - **这道题目使用前序遍历、后序遍历、层序遍历都可以，唯独中序遍历不方便，因为中序遍历会把某些节点的左右孩子翻转了两次！建议拿纸画一画，就理解了**。
+
+  我这里用的是层序遍历：
+
+  ```java
+  class Solution {
+      public TreeNode invertTree(TreeNode root) {
+          if (root == null) {
+              return null;
+          }
+          ArrayDeque<TreeNode> deque = new ArrayDeque<>(); // 用于判断树是否遍历完了
+          deque.addLast(root);
+          while (!deque.isEmpty()) {
+              TreeNode node = deque.removeFirst();
+              TreeNode left = null;
+              TreeNode right = null;
+              if (node.left != null) {
+                  left = node.left;
+                  deque.addLast(left);
+              }
+              if (node.right != null) {
+                  right = node.right;
+                  deque.addLast(right);
+              }
+              node.left = right;
+              node.right = left;
+          }
+          return root;
+      }
+  }
+  ```
+
+  - 用递归也能做：
+
+    ```java
+    class Solution {
+        public TreeNode invertTree(TreeNode root) {
+            // 递归三要素：
+            //  1.确定传入的参数和返回值
+            //  2.确定递归终止条件
+            //  3.确定单层业务逻辑
+            // 递归终止条件
+            if (root == null) {
+                return root;
+            }
+            // 这里用的是后序遍历
+            TreeNode tmpt = root.right;
+            root.right = invertTree(root.left);
+            root.left = invertTree(tmpt);
+            return root;
+        }
+    }
+    ```
+
+    - 但是递归比较玄学，我还是喜欢用迭代。
