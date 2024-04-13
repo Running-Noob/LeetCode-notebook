@@ -4625,3 +4625,151 @@ class Solution {
     ```
 
     - 但是递归比较玄学，我还是喜欢用迭代。
+
+### 6.对称二叉树
+
+#### 题目
+
+- 给你一个二叉树的根节点 `root` ， 检查它是否轴对称。
+
+  **示例 1：**
+
+  ![img](https://pic.leetcode.cn/1698026966-JDYPDU-image.png)
+
+  ```
+  输入：root = [1,2,2,3,4,4,3]
+  输出：true
+  ```
+
+  **示例 2：**
+
+  ![img](https://pic.leetcode.cn/1698027008-nPFLbM-image.png)
+
+  ```
+  输入：root = [1,2,2,null,3,null,3]
+  输出：false
+  ```
+
+  **提示：**
+
+  - 树中节点数目在范围 `[1, 1000]` 内
+  - `-100 <= Node.val <= 100`
+
+  **进阶：**你可以运用递归和迭代两种方法解决这个问题吗？
+
+#### 思路
+
+- **首先想清楚，判断对称二叉树要比较的是哪两个节点，要比较的可不是父节点的左右子节点！**
+
+  对于二叉树是否对称，要比较的是根节点的左子树与右子树是不是相互翻转的，理解这一点就知道了**其实我们要比较的是两个树（这两个树是根节点的左右子树）**，所以在递归遍历的过程中，也是要同时遍历两棵树。
+
+  - 因此我们要通过递归函数的返回值来判断两个子树的**内侧节点**和**外侧节点**是否相等。
+
+    ```java
+    class Solution {
+        public boolean isSymmetric(TreeNode root) {
+            return compare(root.left, root.right);
+        }
+    
+        public boolean compare(TreeNode leftNode, TreeNode rightNode) {
+            // 1.确定传入参数和返回值
+            // 2.确定递归终止的条件
+            // 3.确定单次递归的逻辑
+            if (leftNode == null && rightNode == null) {
+                return true;
+            } else if (leftNode == null && rightNode != null) {
+                return false;
+            } else if (leftNode != null && rightNode == null) {
+                return false;
+            } else if (leftNode.val != rightNode.val) { // 左右两个结点都不为空
+                return false;
+            } else { // 左右两个结点都不为空且值相等
+                boolean compareIn, compareOut;
+                compareIn = compare(leftNode.right, rightNode.left); // 比较内侧
+                compareOut = compare(leftNode.left, rightNode.right); // 比较外侧
+                return compareIn && compareOut;
+            }
+        }
+    }
+    ```
+
+- 这题也可以用迭代来做。
+
+  - 可以考虑用层序遍历的思想来做，对每一层都判断其是否对称，遍历到其中一层不对称就结束循环，或者直到遍历完整棵树。
+
+    ```java
+    class Solution {
+        public boolean isSymmetric(TreeNode root) {
+            Queue<TreeNode> queue = new LinkedList<>();
+            queue.offer(root.left);
+            queue.offer(root.right);
+            while (!queue.isEmpty()) {
+                TreeNode leftNode = queue.poll();
+                TreeNode rightNode = queue.poll();
+                if (leftNode == null && rightNode == null) {
+                } else if (leftNode != null && rightNode == null) {
+                    return false;
+                } else if (leftNode == null && rightNode != null) {
+                    return false;
+                } else if (leftNode.val != rightNode.val) { // 两个结点都不为空
+                    return false;
+                } else { // 两个结点都不为空且值相同
+                    // 外侧结点
+                    queue.offer(leftNode.left);
+                    queue.offer(rightNode.right);
+                    // 内侧结点
+                    queue.offer(leftNode.right);
+                    queue.offer(rightNode.left);
+                }
+            }
+            return true;
+        }
+    }
+    ```
+
+### 7.平衡二叉树
+
+#### 题目
+
+- 给定一个二叉树，判断它是否是平衡二叉树。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/10/06/balance_1.jpg)
+
+  ```
+  输入：root = [3,9,20,null,null,15,7]
+  输出：true
+  ```
+
+  **示例 2：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/10/06/balance_2.jpg)
+
+  ```
+  输入：root = [1,2,2,3,3,null,null,4,4]
+  输出：false
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：root = []
+  输出：true
+  ```
+
+  **提示：**
+
+  - 树中的节点数在范围 `[0, 5000]` 内
+  - `-104 <= Node.val <= 104`
+
+#### 思路
+
+- 这里强调一波概念：
+
+  - **二叉树节点的深度**：指从根节点到该节点的最长简单路径边的条数。
+  - **二叉树节点的高度**：指从该节点到叶子节点的最长简单路径边的条数。
+
+  如图：
+
+  ![110.平衡二叉树2](https://code-thinking-1253855093.file.myqcloud.com/pics/20210203155515650.png)
