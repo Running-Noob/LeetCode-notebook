@@ -4971,3 +4971,605 @@ class Solution {
   }
   ```
 
+### 8.二叉树的所有路径
+
+#### 题目
+
+- 给你一个二叉树的根节点 `root` ，按 **任意顺序** ，返回所有从根节点到叶子节点的路径。
+
+  **叶子节点** 是指没有子节点的节点。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/03/12/paths-tree.jpg)
+
+  ```
+  输入：root = [1,2,3,null,5]
+  输出：["1->2->5","1->3"]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：root = [1]
+  输出：["1"]
+  ```
+
+  **提示：**
+
+  - 树中节点的数目在范围 `[1, 100]` 内
+  - `-100 <= Node.val <= 100`
+
+#### 思路
+
+- 这道题目要求从根节点到叶子的路径，所以需要前序遍历，这样才方便让父节点指向孩子节点，找到对应的路径。
+
+  在这道题目中将第一次涉及到回溯，因为我们要把路径记录下来，需要回溯来回退一个路径再进入另一个路径。
+
+  前序遍历以及回溯的过程如图：
+
+  ![257.二叉树的所有路径](https://code-thinking-1253855093.file.myqcloud.com/pics/20210204151702443.png)
+
+  我们先使用递归的方式，来做前序遍历。**要知道递归和回溯就是一家的，本题也需要回溯。**
+
+  ```java
+   // 递归三步走：
+   // 1.确定传入的参数和返回的值
+   // 2.确定递归终止的条件
+   // 3.确定递归的单层逻辑
+  class Solution {
+      private List<String> result = new ArrayList<>();
+      public List<String> binaryTreePaths(TreeNode root) {
+          List<Integer> path = new ArrayList<>(); // path用于记录当前已经走过的结点
+          if (root == null) {
+              return result;
+          }
+          searchTreePath(root, path);
+          return result;
+      }
+  
+      // 前序遍历来遍历路径
+      public void searchTreePath(TreeNode node, List<Integer> path) {
+          path.add(node.val);
+          if (node.left == null && node.right == null) {
+              StringBuilder sb = new StringBuilder();
+              for (int i = 0; i < path.size() - 1; i++) {
+                  sb.append(path.get(i)).append("->");
+              }
+              sb.append(path.get(path.size() - 1));
+              result.add(sb.toString());
+              return;
+          }
+          if (node.left != null) {
+              searchTreePath(node.left, path);
+              path.remove(path.size() - 1); // 回溯
+          }
+          if (node.right != null) {
+              searchTreePath(node.right, path);
+              path.remove(path.size() - 1); // 回溯
+          }
+      }
+  }
+  ```
+
+- 迭代法也可以做，但是明显性能不如递归+回溯。
+
+  ```java
+  class Solution {
+      public List<String> binaryTreePaths(TreeNode root) {
+          List<String> result = new ArrayList<>();
+          if (root == null) { // 排除特殊情况
+              return result;
+          }
+          Deque<Object> deque = new LinkedList<>();
+          // 结点和路径同时入栈
+          deque.push(root);
+          deque.push(root.val + "");
+          while (!deque.isEmpty()) {
+              // 结点和路径同时出栈
+              String path = (String) deque.pop();
+              TreeNode node = (TreeNode) deque.pop();
+              if (node.left == null && node.right == null) {
+                  result.add(path);
+              }
+              if (node.left != null) {
+                  deque.push(node.left);
+                  deque.push(path + "->" + node.left.val);
+              }
+              if (node.right != null) {
+                  deque.push(node.right);
+                  deque.push(path + "->" + node.right.val);
+              }
+          }
+          return result;
+      }
+  }
+  ```
+
+  - 注意这里**结点和路径同时入栈出栈**。
+
+### 9.二叉搜索树中的搜索
+
+#### 题目
+
+- 给定二叉搜索树（BST）的根节点 `root` 和一个整数值 `val`。
+
+  你需要在 BST 中找到节点值等于 `val` 的节点。 返回以该节点为根的子树。 如果节点不存在，则返回 `null` 。
+
+  **示例 1:**
+
+  ![img](https://assets.leetcode.com/uploads/2021/01/12/tree1.jpg)
+
+  ```
+  输入：root = [4,2,7,1,3], val = 2
+  输出：[2,1,3]
+  ```
+
+  **示例 2:**
+
+  ![img](https://assets.leetcode.com/uploads/2021/01/12/tree2.jpg)
+
+  ```
+  输入：root = [4,2,7,1,3], val = 5
+  输出：[]
+  ```
+
+  **提示：**
+
+  - 树中节点数在 `[1, 5000]` 范围内
+  - `1 <= Node.val <= 107`
+  - `root` 是二叉搜索树
+  - `1 <= val <= 107`
+
+#### 思路
+
+- 根据二叉搜索树的特性解题：
+
+  ```java
+  class Solution {
+      public TreeNode searchBST(TreeNode root, int val) {
+          TreeNode node = root;
+          while (node != null) {
+              if (node.val == val) {
+                  return node;
+              } else if (node.val > val) {
+                  node = node.left;
+              } else {
+                  node = node.right;
+              }
+          }
+          return null;
+      }
+  }
+  ```
+
+### 10.验证二叉搜索树
+
+#### 题目
+
+- 给你一个二叉树的根节点 `root` ，判断其是否是一个有效的二叉搜索树。
+
+  **有效** 二叉搜索树定义如下：
+
+  - 节点的左子树只包含 **小于** 当前节点的数。
+  - 节点的右子树只包含 **大于** 当前节点的数。
+  - 所有左子树和右子树自身必须也是二叉搜索树。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/12/01/tree1.jpg)
+
+  ```
+  输入：root = [2,1,3]
+  输出：true
+  ```
+
+  **示例 2：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/12/01/tree2.jpg)
+
+  ```
+  输入：root = [5,1,4,null,null,3,6]
+  输出：false
+  解释：根节点的值是 5 ，但是右子节点的值是 4 。
+  ```
+
+  **提示：**
+
+  - 树中节点数目范围在`[1, 10^4]` 内
+  - `-2^31 <= Node.val <= 2^31 - 1`
+
+#### 思路
+
+- **中序遍历下，输出的二叉搜索树节点的数值是有序序列**。有了这个特性，验证二叉搜索树，就相当于变成了判断一个序列是不是递增的了。 
+
+  - 可以递归中序遍历将二叉搜索树转变成一个数组，然后只要比较一下，这个数组是否是有序的，**注意二叉搜索树中不能有重复元素**。
+
+  ```java
+  class Solution {
+      private List<Integer> list = new ArrayList<>();
+      public boolean isValidBST(TreeNode root) {
+          inOrderTraversal(root);
+          for (int i = 0; i < list.size() - 1; i++) {
+              if (list.get(i) >= list.get(i + 1)) {
+                  return false;
+              }
+          }
+          return true;
+      }
+  
+      public void inOrderTraversal(TreeNode node) {
+          if (node == null) {
+              return;
+          }
+          inOrderTraversal(node.left);
+          list.add(node.val);
+          inOrderTraversal(node.right);
+      }
+  }
+  ```
+
+- 这题也可以用递归来做：
+
+  - 这道题目比较容易陷入一个陷阱：
+
+    **不能单纯的比较左节点小于中间节点，右节点大于中间节点就完事了**。然后写出这样的代码：
+
+    ```java
+    if (root.left != null && root.left.val >= root.val) {
+        return false;
+    }
+    if (root.right != null && root.right.val <= root.val) {
+        return false;
+    }
+    ```
+
+    **我们要比较的是 左子树所有节点小于中间节点，右子树所有节点大于中间节点**。所以以上代码的判断逻辑是错误的。例如： `[10,5,15,null,null,6,20]` 这个 case，节点 10 大于左节点 5，小于右节点 15，但右子树里出现了一个 6，这就不符合了：
+
+    ![二叉搜索树](https://code-thinking-1253855093.file.myqcloud.com/pics/20230310000824.png)
+
+  正确的递归代码如下：
+
+  ```java
+  class Solution {
+      public boolean isValidBST(TreeNode root) {
+          return isValidBST(root, Long.MAX_VALUE, Long.MIN_VALUE);
+      }
+  
+      public boolean isValidBST(TreeNode node, long upper, long low) {
+          if (node == null) {
+              return true;
+          }
+          if (node.val >= upper || node.val <= low) {
+              return false;
+          }
+          // 左子树所有节点小于中间节点，右子树所有节点大于中间节点
+          return isValidBST(node.left, node.val, low) && isValidBST(node.right, upper, node.val);
+      }
+  }
+  ```
+
+
+### 11.二叉搜索树中的插入操作
+
+#### 题目
+
+- 给定二叉搜索树（BST）的根节点 `root` 和要插入树中的值 `value` ，将值插入二叉搜索树。 返回插入后二叉搜索树的根节点。 输入数据 **保证** 新值和原始二叉搜索树中的任意节点值都不同。
+
+  **注意**，可能存在多种有效的插入方式，只要树在插入后仍保持为二叉搜索树即可。 你可以返回 **任意有效的结果** 。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/10/05/insertbst.jpg)
+
+  ```
+  输入：root = [4,2,7,1,3], val = 5
+  输出：[4,2,7,1,3,5]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：root = [40,20,60,10,30,50,70], val = 25
+  输出：[40,20,60,10,30,50,70,null,null,25]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：root = [4,2,7,1,3,null,null,null,null,null,null], val = 5
+  输出：[4,2,7,1,3,5]
+  ```
+
+  **提示：**
+
+  - 树中的节点数将在 `[0, 104]`的范围内。
+  - `-10^8 <= Node.val <= 10^8`
+  - 所有值 `Node.val` 是 **独一无二** 的。
+  - `-10^8 <= val <= 10^8`
+  - **保证** `val` 在原始 BST 中不存在。
+
+#### 思路
+
+- 就是利用搜索树的特性，找到要插入的地方，当然别忘了记录父节点的位置，否则无法实现插入：
+
+  ```java
+  // 迭代法
+  class Solution {
+      public TreeNode insertIntoBST(TreeNode root, int val) {
+          if (root == null) {
+              return new TreeNode(val, null, null);
+          }
+          TreeNode node, parent; // parent用于记录node的上一个位置
+          parent = node = root;
+          while (node != null) {
+              parent = node;
+              if (node.val < val) {
+                  node = node.right;
+              } else if (node.val > val) {
+                  node = node.left;
+              }
+          }
+          if (parent.val < val) {
+              parent.right = new TreeNode(val, null, null);
+          }else if (parent.val > val) {
+              parent.left = new TreeNode(val, null, null);
+          }
+          return root;
+      }
+  }
+  ```
+
+  ```java
+  // 递归法
+  class Solution {
+      public TreeNode insertIntoBST(TreeNode root, int val) {
+          if (root == null) {
+              return new TreeNode(val, null, null);
+          }
+          if (root.val < val) {
+              root.right = insertIntoBST(root.right, val);
+          } else if (root.val > val) {
+              root.left = insertIntoBST(root.left, val);
+          }
+          return root;
+      }
+  }
+  ```
+
+### 12.二叉搜索树中的删除操作
+
+#### 题目
+
+- 给定一个二叉搜索树的根节点 **root** 和一个值 **key**，删除二叉搜索树中的 **key** 对应的节点，并保证二叉搜索树的性质不变。返回二叉搜索树（有可能被更新）的根节点的引用。
+
+  一般来说，删除节点可分为两个步骤：
+
+  1. 首先找到需要删除的节点；
+  2. 如果找到了，删除它。
+
+  **示例 1:**
+
+  ![img](https://assets.leetcode.com/uploads/2020/09/04/del_node_1.jpg)
+
+  ```
+  输入：root = [5,3,6,2,4,null,7], key = 3
+  输出：[5,4,6,2,null,null,7]
+  解释：给定需要删除的节点值是 3，所以我们首先找到 3 这个节点，然后删除它。
+  一个正确的答案是 [5,4,6,2,null,null,7],
+  另一个正确答案是 [5,2,6,null,4,null,7]。
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: root = [5,3,6,2,4,null,7], key = 0
+  输出: [5,3,6,2,4,null,7]
+  解释: 二叉树不包含值为 0 的节点
+  ```
+
+  **示例 3:**
+
+  ```
+  输入: root = [], key = 0
+  输出: []
+  ```
+
+  **提示:**
+
+  - 节点数的范围 `[0, 104]`.
+  - `-10^5 <= Node.val <= 10^5`
+  - 节点值唯一
+  - `root` 是合法的二叉搜索树
+  - `-10^5 <= key <= 10^5`
+
+#### 思路
+
+- 递归三部曲：
+
+  - **确定递归函数参数以及返回值**：通过递归返回值删除节点。
+
+  - **确定终止条件**：遇到空返回，其实这也说明没找到删除的节点，遍历到空节点直接返回了
+
+  - **确定单层递归的逻辑**：这里就需要把二叉搜索树中删除节点遇到的情况都搞清楚。有以下五种情况：
+
+    - 第一种情况：没找到删除的节点，遍历到空节点直接返回了
+
+    - 找到删除的节点
+
+      - 第二种情况：左右孩子都为空（叶子节点），直接删除节点， 返回 NULL 为根节点
+
+      - 第三种情况：删除节点的左孩子为空，右孩子不为空，删除节点，右孩子补位，返回右孩子为根节点
+
+      - 第四种情况：删除节点的右孩子为空，左孩子不为空，删除节点，左孩子补位，返回左孩子为根节点
+
+      - 第五种情况：左右孩子节点都不为空，则将删除节点的左子树头结点（左孩子）放到删除节点的右子树的最左面节点的左孩子上，返回删除节点右孩子为新的根节点。
+
+        - 第五种情况有点难以理解，看下面动画：
+
+          ![450.删除二叉搜索树中的节点](https://code-thinking.cdn.bcebos.com/gifs/450.%E5%88%A0%E9%99%A4%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91%E4%B8%AD%E7%9A%84%E8%8A%82%E7%82%B9.gif)
+
+  ```java
+  class Solution {
+      public TreeNode deleteNode(TreeNode root, int key) {
+          // 情况1：要删除的结点不存在
+          if (root == null) {
+              return root;
+          }
+          if (root.val == key) { // 找到要删除的结点
+              // 情况2：要删除的结点为叶子结点
+              if (root.left == null && root.right == null) {
+                  return null;
+              }
+              // 情况3：要删除的结点的左子树为null
+              if (root.left == null) {
+                  return root.right;
+              }
+              // 情况4：要删除的结点的右子树为null
+              if (root.right == null) {
+                  return root.left;
+              }
+              // 情况5：要删除的结点的左右子树都不为null
+              if (root.left != null && root.right != null) {
+                  TreeNode node, parent;
+                  parent = node = root.right;
+                  while (node != null) {
+                      parent = node;
+                      node = node.left;
+                  }
+                  parent.left = root.left;
+                  return root.right;
+              }
+          } else if (root.val > key){
+              root.left = deleteNode(root.left, key);
+          } else {
+              root.right = deleteNode(root.right, key);
+          }
+          return root;
+      }
+  }
+  ```
+
+- 二叉搜索树删除节点比增加节点复杂的多。**因为二叉搜索树添加节点只需要在叶子上添加就可以的，不涉及到结构的调整，而删除节点操作涉及到结构的调整。** 
+
+## 回溯算法
+
+### 理论基础
+
+- 回溯法也可以叫做回溯搜索法，它是一种搜索的方式。
+
+  回溯是递归的副产品，只要有递归就会有回溯。**所以以下讲解中，回溯函数也就是递归函数，指的都是一个函数**。
+
+- 回溯法，一般可以解决如下几种问题：
+  - 组合问题：N 个数里面按一定规则找出 k 个数的集合
+  - 切割问题：一个字符串按一定规则有几种切割方式
+  - 子集问题：一个 N 个数的集合里有多少符合条件的子集
+  - 排列问题：N 个数按一定规则全排列，有几种排列方式
+  - 棋盘问题：N 皇后，解数独等等
+
+- 回溯法解决的问题都可以抽象为树形结构，因为回溯法解决的都是在集合中递归查找子集，集合的大小就构成了树的宽度，递归的深度就构成了树的深度。递归就要有终止条件，所以必然是一棵高度有限的树（N叉树）。
+
+### ★回溯法模板
+
+- 回溯三部曲：
+
+  - **回溯函数模板返回值以及参数**：
+
+    - 在回溯算法中，我的习惯是函数起名字为 backtracking，这个起名大家随意。
+
+      回溯算法中函数返回值一般为void。
+
+      再来看一下参数，因为回溯算法需要的参数可不像二叉树递归的时候那么容易一次性确定下来，所以一般是先写逻辑，然后需要什么参数，就填什么参数。回溯函数伪代码如下：
+
+    ```java
+    void backtracking(参数)
+    ```
+
+  - **回溯函数终止条件**：
+
+    - 什么时候达到了终止条件，树中就可以看出，一般来说搜到叶子节点了，也就找到了满足条件的一条答案，把这个答案存放起来，并结束本层递归。所以回溯函数终止条件伪代码如下：
+
+    ```java
+    if (终止条件) {
+        存放结果;
+        return;
+    }
+    ```
+
+  - **回溯搜索的遍历过程**：
+
+    - 在上面我们提到了，回溯法一般是在集合中递归搜索，集合的大小构成了树的宽度，递归的深度构成的树的深度。如图：
+
+      ![回溯算法理论基础](https://code-thinking-1253855093.file.myqcloud.com/pics/20210130173631174.png)
+
+      回溯函数遍历过程伪代码如下：
+
+      ```java
+      for (选择：本层集合中元素（树中节点孩子的数量就是集合的大小）) {
+          处理节点;
+          backtracking(路径，选择列表); // 递归
+          回溯，撤销处理结果
+      }
+      ```
+
+      - for 循环就是遍历集合区间，可以理解一个节点有多少个孩子，这个 for 循环就执行多少次。
+      - backtracking 这里自己调用自己，实现递归。
+      - 大家可以从图中看出**for循环可以理解是横向遍历，backtracking（递归）就是纵向遍历**，这样就把这棵树全遍历完了，一般来说，搜索叶子节点就是找的其中一个结果了。
+
+  分析完过程，回溯算法模板框架如下：
+
+  ```java
+  void backtracking(参数) {
+      if (终止条件) {
+          存放结果;
+          return;
+      }
+  
+      for (选择：本层集合中元素（树中节点孩子的数量就是集合的大小）) {
+          处理节点;
+          backtracking(路径，选择列表); // 递归
+          回溯，撤销处理结果
+      }
+  }
+  ```
+
+  **这份模板很重要，后面做回溯法的题目都靠它了！** 
+
+### 1.组合问题
+
+#### 题目
+
+- 给定两个整数 `n` 和 `k`，返回范围 `[1, n]` 中所有可能的 `k` 个数的组合。
+
+  你可以按 **任何顺序** 返回答案。
+
+  **示例 1：**
+
+  ```
+  输入：n = 4, k = 2
+  输出：
+  [
+    [2,4],
+    [3,4],
+    [2,3],
+    [1,2],
+    [1,3],
+    [1,4],
+  ]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：n = 1, k = 1
+  输出：[[1]]
+  ```
+
+  **提示：**
+
+  - `1 <= n <= 20`
+  - `1 <= k <= n`
+
+#### 思路
+
+- 
