@@ -5572,4 +5572,280 @@ class Solution {
 
 #### 思路
 
-- 
+- 本题是回溯法的经典题目。直接的解法当然是使用 for 循环，例如示例中 k 为 2，很容易想到用两个 for 循环，这样就可以输出和示例中一样的结果。输入：n = 100, k = 3 那么就三层 for 循环。
+
+  **如果n为100，k为50呢，那就50层for循环，是不是开始窒息**。此时就会发现虽然想暴力搜索，但是用 for 循环嵌套连暴力都写不出来！
+
+- 回溯搜索法来了，虽然回溯法也是暴力，但至少能写出来，不像 for 循环嵌套 k 层让人绝望。
+
+  那么回溯法怎么暴力搜呢？
+
+  - 上面我们说了要解决 n 为 100，k 为 50 的情况，暴力写法需要嵌套 50 层 for 循环，那么回溯法就用递归来解决嵌套层数的问题。**用递归来做层叠嵌套（可以理解是开 k 层 for 循环），每一次的递归中嵌套一个 for 循环，那么递归就可以用于解决多层嵌套循环的问题了**。
+
+- 把组合问题抽象为如下树形结构：
+
+  ![77.组合](https://code-thinking-1253855093.file.myqcloud.com/pics/20201123195223940.png)
+
+  - 可以看出这棵树，一开始集合是 1，2，3，4， 从左向右取数，取过的数，不再重复取。第一次取1，集合变为2，3，4 ，因为k为2，我们只需要再取一个数就可以了，分别取2，3，4，得到集合[1,2] [1,3] [1,4]，以此类推。
+  - **每次从集合中选取元素，可选择的范围随着选择的进行而收缩，调整可选择的范围**。
+    - **图中可以发现 n 相当于树的宽度，k 相当于树的深度**。
+  - 那么如何在这个树上遍历，然后收集到我们要的结果集呢？
+    - **图中每次搜索到了叶子节点，我们就找到了一个结果**。相当于只需要把达到叶子节点的结果收集起来，就可以求得 n 个数中 k 个数的组合集合。
+
+- 回溯法三部曲：
+
+  - **递归函数的返回值以及参数**
+
+    - 函数里一定有两个参数，既然是集合 n 里面取 k 个数，那么 n 和 k 是两个 int 型的参数。
+
+    - 然后还需要一个参数，为 int 型变量 startIndex，这个参数用来记录本层递归的中，集合从哪里开始遍历（集合就是[1,...,n] ）。
+
+      - 为什么要有这个 startIndex 呢？
+
+        **startIndex 就是防止出现重复的组合**。
+
+    ```java
+    List<List<Integer>> result; // 存放符合条件结果的集合
+    List<Integer> path; // 用来存放符合条件单一结果
+    void backtracking(int n, int k, int startIndex);
+    ```
+
+  - **回溯函数终止条件**
+
+    - 什么时候到达所谓的叶子节点了呢？
+      - path 这个数组的大小如果达到 k，说明我们找到了一个子集大小为 k 的组合了，path 存的就是根节点到叶子节点的路径。
+
+    ```java
+    if (path.size() == k) {
+        result.add(path);
+        return;
+    }
+    ```
+
+  - **单层搜索的过程**
+
+    - 回溯法的搜索过程就是一个树型结构的遍历过程，在如下图中，可以看出 for 循环用来横向遍历，递归的过程是纵向遍历。
+
+      ![77.组合1](https://code-thinking-1253855093.file.myqcloud.com/pics/20201123195242899.png)
+
+      如此我们才遍历完图中的这棵树。
+
+      - for 循环每次从 startIndex 开始遍历，然后用 path 保存取到的节点 i。
+
+    ```java
+    for (int i = startIndex; i <= n; i++) { // 控制树的横向遍历
+        path.add(i); // 处理节点
+        backtracking(n, k, i + 1); // 递归：控制树的纵向遍历，注意下一层搜索要从i+1开始
+        path.remove(Integer.valueOf(i)); // 回溯，撤销处理的节点
+    }
+    ```
+
+    - 可以看出 backtracking（递归函数）通过不断调用自己一直往深处遍历，总会遇到叶子节点，遇到了叶子节点就要返回。
+    - backtracking 的下面部分就是回溯的操作了，撤销本次处理的结果。
+
+  ```java
+  class Solution {
+      private List<List<Integer>> result = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+      public List<List<Integer>> combine(int n, int k) {
+          backTracking(n, k, 1);
+          return result;
+      }
+  
+      public void backTracking(int n, int k, int startIndex) {
+          if (path.size() == k) {
+              result.add(new ArrayList<>(path));
+              return;
+          }
+          // startIndex用于标识从哪里开始迭代，避免元素重复
+          for (int i = startIndex; i <= n; i++) {
+              path.add(i);
+              backTracking(n, k, i + 1);
+              path.remove(path.size() - 1); // 回溯
+          }
+      }
+  }
+  ```
+
+- 上面的代码耗时很长，所以用剪枝对其进行优化，怎么优化呢？
+
+  - 来举一个例子，n = 4，k = 4 的话，那么第一层 for 循环的时候，从元素 2 开始的遍历都没有意义了。 在第二层 for 循环，从元素 3 开始的遍历都没有意义了。
+
+    这么说有点抽象，如图所示：
+
+    ![77.组合4](https://code-thinking-1253855093.file.myqcloud.com/pics/20210130194335207-20230310134409532.png)
+
+    - **可以剪枝的地方就在递归中每一层的for循环所选择的起始位置**。
+    - **如果 for 循环选择的起始位置之后的元素个数 已经不足 我们需要的元素个数了，那么就没有必要搜索了**。
+
+  ```java
+  class Solution {
+      private List<List<Integer>> result = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+      public List<List<Integer>> combine(int n, int k) {
+          backTracking(n, k, 1);
+          return result;
+      }
+  
+      public void backTracking(int n, int k, int startIndex) {
+          if (path.size() == k) {
+              result.add(new ArrayList<>(path));
+              return;
+          }
+          // n - startIndex + 1是剩余的还可以被添加到路径中的元素个数
+          // k - path.size()是还需要被添加到路径中的元素个数
+          if ((n - startIndex + 1) < (k - path.size())) {
+              return;
+          }
+          // startIndex用于标识从哪里开始迭代，避免元素重复
+          for (int i = startIndex; i <= n; i++) {
+              path.add(i);
+              backTracking(n, k, i + 1);
+              path.remove(path.size() - 1); // 回溯
+          }
+      }
+  }
+  ```
+
+### 2.全排列
+
+#### 题目
+
+- 给定一个不含重复数字的数组 `nums` ，返回其 所有可能的全排列 。你可以 **按任意顺序** 返回答案。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [1,2,3]
+  输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [0,1]
+  输出：[[0,1],[1,0]]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：nums = [1]
+  输出：[[1]]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 6`
+  - `-10 <= nums[i] <= 10`
+  - `nums` 中的所有整数 **互不相同**
+
+#### 思路
+
+- 回溯法三部曲：
+
+  - **递归函数的返回值以及参数**
+
+    - **首先排列是有序的，也就是说 [1,2] 和 [2,1] 是两个集合，这和之前分析的子集以及组合所不同的地方**。
+
+    - 可以看出元素 1 在 [1,2] 中已经使用过了，但是在 [2,1] 中还要在使用一次 1，所以处理排列问题就不用使用 startIndex 了。
+
+      但排列问题需要一个 used 数组，标记已经选择的元素，如图橘黄色部分所示：
+
+      ![46.全排列](https://code-thinking-1253855093.file.myqcloud.com/pics/20211027181706.png)
+
+    ```java
+    List<List<Integer>> result; // 存放符合条件结果的集合
+    List<Integer> path; // 用来存放符合条件单一结果
+    void backtracking(int[] nums, boolean[] used);
+    ```
+
+  - **回溯函数终止条件**
+
+    - 什么时候到达所谓的叶子节点了呢？
+      - 当收集元素的数组 path 的大小达到和 nums 数组一样大的时候，说明找到了一个全排列，也表示到达了叶子节点。
+
+    ```java
+    if (path.size() == nums.length) {
+        result.add(path);
+        return;
+    }
+    ```
+
+  - **单层搜索的过程**
+
+    - 因为排列问题，每次都要从头开始搜索，例如元素 1 在 [1,2] 中已经使用过了，但是在 [2,1] 中还要再使用一次 1。**而 used 数组，其实就是记录此时 path 里都有哪些元素使用了，一个排列里一个元素只能使用一次**。
+
+    ```java
+    for (int i = 0; i < nums.length; i++) {
+        if (used[i] == true) continue; // path里已经收录的元素，直接跳过
+        used[i] = true;
+        path.add(nums[i]);
+        backtracking(nums, used);
+        path.remove(path.size() - 1); // 回溯
+        used[i] = false; // 回溯
+    }
+    ```
+
+  ```java
+  class Solution {
+      private List<List<Integer>> result = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+      public List<List<Integer>> permute(int[] nums) {
+          boolean[] used = new boolean[nums.length];
+          // 初始化used数组
+          for (int i = 0; i < used.length; i++) {
+              used[i] = false;
+          }
+          backTracking(nums, used);
+          return result;
+      }
+  
+      public void backTracking(int[] nums, boolean[] used) {
+          if (path.size() == nums.length) {
+              result.add(new ArrayList<>(path));
+              return;
+          }
+          for (int i = 0; i < nums.length; i++) {
+              if (used[i]) {
+                  continue;
+              }
+              used[i] = true;
+              path.add(nums[i]);
+              backTracking(nums, used);
+              path.remove(path.size() - 1); // 回溯
+              used[i] = false; // 回溯
+          }
+      }
+  }
+  ```
+
+  - 不用 used 数组，用 contains 方法判断元素是不是在 path 中就可以。
+
+    ```java
+    class Solution {
+        private List<List<Integer>> result = new ArrayList<>();
+        private List<Integer> path = new ArrayList<>();
+        public List<List<Integer>> permute(int[] nums) {
+            backTracking(nums);
+            return result;
+        }
+    
+        public void backTracking(int[] nums) {
+            if (path.size() == nums.length) {
+                result.add(new ArrayList<>(path));
+                return;
+            }
+            for (int i = 0; i < nums.length; i++) {
+                if (path.contains(nums[i])) {
+                    continue;
+                }
+                path.add(nums[i]);
+                backTracking(nums);
+                path.remove(path.size() - 1); // 回溯
+            }
+        }
+    }
+    ```
+
+    
