@@ -1118,22 +1118,22 @@
               return head;
           }
           ListNode dummyHead = new ListNode(-1, head); // 增加一个虚拟头结点
-          ListNode pre, cur, next, tmpt1, tmpt2;
-          tmpt1 = dummyHead;
+          ListNode pre, cur, next, temp1, temp2;
+          temp1 = dummyHead;
           for (int i = 0; i < left - 1; i++) {
-              tmpt1 = tmpt1.next; // tmpt1用于指向left左边的结点
+              temp1 = temp1.next; // temp1用于指向left左边的结点
           }
-          tmpt2 = tmpt1.next; // tmpt2用于指向left所在的结点
-          pre = tmpt2;
-          cur = tmpt2.next;
+          temp2 = temp1.next; // temp2用于指向left所在的结点
+          pre = temp2;
+          cur = temp2.next;
           for (int i = 0; i < right - left; i++) { // 反转的次数
               next = cur.next;
               cur.next = pre;
               pre = cur;
               cur = next;
           }
-          tmpt1.next = pre;
-          tmpt2.next = cur;
+          temp1.next = pre;
+          temp2.next = cur;
           return dummyHead.next;
       }
   }
@@ -1185,7 +1185,7 @@
           // 虚拟头结点
           ListNode dummyHead = new ListNode();
           dummyHead.next = head;
-          ListNode pre, cur, next, tmpt1, tmpt2;
+          ListNode pre, cur, next, temp1, temp2;
           pre = dummyHead;
           cur = pre.next;
           int n, loop;
@@ -1198,17 +1198,17 @@
           cur = pre.next;
           for (int i = 0; i < loop; i++) {
               // 单段翻转逻辑
-              tmpt1 = pre;
-              tmpt2 = cur;
+              temp1 = pre;
+              temp2 = cur;
               for (int j = 0; j < k; j++) {
                   next = cur.next;
                   cur.next = pre;
                   pre = cur;
                   cur = next;
               }
-              tmpt1.next = pre;
-              tmpt2.next = cur;
-              pre = tmpt2; // 需要让新一段开始的pre指向上一段的最后一个结点
+              temp1.next = pre;
+              temp2.next = cur;
+              pre = temp2; // 需要让新一段开始的pre指向上一段的最后一个结点
           }
           return dummyHead.next;
       }
@@ -2312,11 +2312,11 @@ public class Solution {
                   } else if (sum < 0) { // 说明nums[leftIndex]小了
                       leftIndex++;
                   } else { // 找到了
-                      List<Integer> tmpt = new ArrayList<>();
-                      tmpt.add(nums[i]);
-                      tmpt.add(nums[leftIndex]);
-                      tmpt.add(nums[rightIndex]);
-                      result.add(tmpt);
+                      List<Integer> temp = new ArrayList<>();
+                      temp.add(nums[i]);
+                      temp.add(nums[leftIndex]);
+                      temp.add(nums[rightIndex]);
+                      result.add(temp);
                       leftIndex++;
                       rightIndex--;
                       while (leftIndex < rightIndex && nums[leftIndex - 1] == nums[leftIndex]) { // 对b去重
@@ -2742,12 +2742,12 @@ public class Solution {
           int[] next = new int[needle.length()];
           next[0] = -1;
           for (int i = 1; i < needle.length(); i++) {
-              int tmpt = next[i - 1];
-              while (tmpt >= 0 && needle.charAt(tmpt + 1) != needle.charAt(i)) {
-                  tmpt = next[tmpt];
+              int temp = next[i - 1];
+              while (temp >= 0 && needle.charAt(temp + 1) != needle.charAt(i)) {
+                  temp = next[temp];
               }
-              if (needle.charAt(tmpt + 1) == needle.charAt(i)) {
-                  next[i] = tmpt + 1;
+              if (needle.charAt(temp + 1) == needle.charAt(i)) {
+                  next[i] = temp + 1;
               } else {
                   next[i] = -1;
               }
@@ -2850,12 +2850,12 @@ public class Solution {
             int[] next = new int[s.length()];
             next[0] = -1;
             for (int i = 1; i < s.length(); i++) {
-                int tmpt = next[i - 1];
-                while (tmpt >= 0 && s.charAt(tmpt + 1) != s.charAt(i)) {
-                    tmpt = next[tmpt];
+                int temp = next[i - 1];
+                while (temp >= 0 && s.charAt(temp + 1) != s.charAt(i)) {
+                    temp = next[temp];
                 }
-                if (s.charAt(tmpt + 1) == s.charAt(i)) {
-                    next[i] = tmpt + 1;
+                if (s.charAt(temp + 1) == s.charAt(i)) {
+                    next[i] = temp + 1;
                 } else {
                     next[i] = -1;
                 }
@@ -3062,10 +3062,10 @@ public class Solution {
       }
   
       public void transfer() {
-          int tmpt;
+          int temp;
           for (int i = 0; i < queue.size() - 1; i++) {
-              tmpt = queue.remove(0);
-              queue.add(tmpt);
+              temp = queue.remove(0);
+              queue.add(temp);
           }
       }
   }
@@ -3169,7 +3169,7 @@ public class Solution {
           public Stack<Character> stack = new Stack<>();
       
           public boolean isValid(String s) {
-              char c, tmpt;
+              char c, temp;
               for (int i = 0; i < s.length(); i++) {
                   c = s.charAt(i);
                   if (c == '(') {
@@ -3807,7 +3807,7 @@ public class TreeNode {
   ```java
   class Solution {
       private List<Integer> result = new ArrayList<>();
-      private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+      private List<TreeNode> temp = new ArrayList<>(); // 用于查看结点是否是第一次出栈
       private Deque<TreeNode> deque = new ArrayDeque<>();
   
       public List<Integer> inorderTraversal(TreeNode root) {
@@ -3817,8 +3817,8 @@ public class TreeNode {
           deque.push(root);
           while (!deque.isEmpty()) {
               TreeNode node = deque.pop();
-              if (!tmpt.contains(node)) { // 结点是第一次出栈
-                  tmpt.add(node);
+              if (!temp.contains(node)) { // 结点是第一次出栈
+                  temp.add(node);
                   // 如果结点是第一次出栈，就按照node.right，node，node.left的顺序入栈
                   if (node.right != null) {
                       deque.push(node.right);
@@ -3845,7 +3845,7 @@ public class TreeNode {
   ```java
   class Solution {
       private List<Integer> result = new ArrayList<>();
-      private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+      private List<TreeNode> temp = new ArrayList<>(); // 用于查看结点是否是第一次出栈
       private Deque<TreeNode> deque = new ArrayDeque<>();
   
       public List<Integer> postorderTraversal(TreeNode root) {
@@ -3855,8 +3855,8 @@ public class TreeNode {
           deque.push(root);
           while (!deque.isEmpty()) {
               TreeNode node = deque.pop();
-              if (!tmpt.contains(node)) { // 结点是第一次出栈
-                  tmpt.add(node);
+              if (!temp.contains(node)) { // 结点是第一次出栈
+                  temp.add(node);
                   // 如果结点是第一次出栈，就按照node，node.right，node.left的顺序入栈
                   deque.push(node);
                   if (node.right != null) {
@@ -3924,7 +3924,7 @@ public class TreeNode {
     ```java
     class Solution {
         private List<Integer> result = new ArrayList<>();
-        private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+        private List<TreeNode> temp = new ArrayList<>(); // 用于查看结点是否是第一次出栈
         private Deque<TreeNode> deque = new ArrayDeque<>();
     
         public List<Integer> preorderTraversal(TreeNode root) {
@@ -3934,8 +3934,8 @@ public class TreeNode {
             deque.push(root);
             while (!deque.isEmpty()) {
                 TreeNode node = deque.pop();
-                if (!tmpt.contains(node)) { // 结点是第一次出栈
-                    tmpt.add(node);
+                if (!temp.contains(node)) { // 结点是第一次出栈
+                    temp.add(node);
                     // 如果结点是第一次出栈，就按照node.right，node.left，node的顺序入栈
                     if (node.right != null) {
                         deque.push(node.right);
@@ -3958,7 +3958,7 @@ public class TreeNode {
     ```java
     class Solution {
         private List<Integer> result = new ArrayList<>();
-        private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+        private List<TreeNode> temp = new ArrayList<>(); // 用于查看结点是否是第一次出栈
         private Deque<TreeNode> deque = new ArrayDeque<>();
     
         public List<Integer> inorderTraversal(TreeNode root) {
@@ -3968,8 +3968,8 @@ public class TreeNode {
             deque.push(root);
             while (!deque.isEmpty()) {
                 TreeNode node = deque.pop();
-                if (!tmpt.contains(node)) { // 结点是第一次出栈
-                    tmpt.add(node);
+                if (!temp.contains(node)) { // 结点是第一次出栈
+                    temp.add(node);
                     // 如果结点是第一次出栈，就按照node.right，node，node.left的顺序入栈
                     if (node.right != null) {
                         deque.push(node.right);
@@ -3992,7 +3992,7 @@ public class TreeNode {
     ```java
     class Solution {
         private List<Integer> result = new ArrayList<>();
-        private List<TreeNode> tmpt = new ArrayList<>(); // 用于查看结点是否是第一次出栈
+        private List<TreeNode> temp = new ArrayList<>(); // 用于查看结点是否是第一次出栈
         private Deque<TreeNode> deque = new ArrayDeque<>();
     
         public List<Integer> postorderTraversal(TreeNode root) {
@@ -4002,8 +4002,8 @@ public class TreeNode {
             deque.push(root);
             while (!deque.isEmpty()) {
                 TreeNode node = deque.pop();
-                if (!tmpt.contains(node)) { // 结点是第一次出栈
-                    tmpt.add(node);
+                if (!temp.contains(node)) { // 结点是第一次出栈
+                    temp.add(node);
                     // 如果结点是第一次出栈，就按照node，node.right，node.left的顺序入栈
                     deque.push(node);
                     if (node.right != null) {
@@ -4751,9 +4751,9 @@ class Solution {
                 return root;
             }
             // 这里用的是后序遍历
-            TreeNode tmpt = root.right;
+            TreeNode temp = root.right;
             root.right = invertTree(root.left);
-            root.left = invertTree(tmpt);
+            root.left = invertTree(temp);
             return root;
         }
     }
@@ -5848,4 +5848,362 @@ class Solution {
     }
     ```
 
+
+## 贪心算法
+
+### 理论基础
+
+- 贪心的本质是选择每一阶段的局部最优，从而达到全局最优。
+
+- 贪心的套路（什么时候用贪心）
+
+  - 刷题或者面试的时候，手动模拟一下感觉可以局部最优推出整体最优，而且想不到反例，那么就试一试贪心。
+
+- 贪心一般解题步骤：
+
+  贪心算法一般分为如下四步：
+
+  1. 将问题分解为若干个子问题
+  2. 找出适合的贪心策略
+  3. 求解每一个子问题的最优解
+  4. 将局部最优解堆叠成全局最优解
+
+## 动态规划
+
+### 理论基础
+
+- 动态规划，英文：Dynamic Programming，简称 DP，如果某一问题有很多重叠子问题，使用动态规划是最有效的。
+
+  - 动态规划中每一个状态一定是由上一个状态推导出来的，**这一点就区分于贪心**，贪心没有状态推导，而是从局部直接选最优的。
+
+    大家知道动规是由前一个状态推导出来的，而贪心是局部直接选最优的，对于刷题来说就够用了。
+
+- 动态规划的解题步骤：
+
+  1. **确定dp数组（dp table）以及下标的含义**
+  2. **确定递推公式**
+  3. **dp 数组如何初始化**
+  4. **确定遍历顺序**
+  5. **举例推导 dp 数组**
+
+  - 状态转移公式（递推公式）是很重要，但动规不仅仅只有递推公式。
+
+    对于动态规划问题，上面这五步都搞清楚了，才能说把动态规划真的掌握了。
+
+  一些同学可能想为什么要先确定递推公式，然后在考虑初始化呢？
+
+  - 因为一些情况是递推公式决定了 dp 数组要如何初始化。
+
+- 动态规划应该如何 debug？
+
+  - **找问题的最好方式就是把dp数组打印出来，看看究竟是不是按照自己思路推导的！**
+  - 一些同学对于 dp 的学习是黑盒的状态，就是不清楚 dp 数组的含义，不懂为什么这么初始化，递推公式背下来了，遍历顺序靠习惯就是这么写的，然后一鼓作气写出代码，如果代码能通过万事大吉，通过不了的话就凭感觉改一改。
+    - 这是一个很不好的习惯！
+  - **做动规的题目，写代码之前一定要把状态转移在 dp 数组的上具体情况模拟一遍，心中有数，确定最后推出的是想要的结果**。然后再写代码，如果代码没通过就打印 dp 数组，看看是不是和自己预先推导的哪里不一样。如果打印出来和自己预先模拟推导是一样的，那么就是自己的递归公式、初始化或者遍历顺序有问题了。如果和自己预先模拟推导的不一样，那么就是代码实现细节有问题。
+    - **这样才是一个完整的思考过程，而不是一旦代码出问题，就毫无头绪的东改改西改改，最后过不了，或者说是稀里糊涂的过了**。
+
+## 图论
+
+
+
+## 排序
+
+### 1.排序数组
+
+#### 题目
+
+- 给你一个整数数组 `nums`，请你将该数组升序排列。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [5,2,3,1]
+  输出：[1,2,3,5]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [5,1,1,2,0,0]
+  输出：[0,0,1,1,2,5]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 5 * 10^4`
+  - `-5 * 10^4 <= nums[i] <= 5 * 10^4`
+
+#### 思路
+
+- 排序方法有很多，接下来一一来实现：
+
+  - **插入排序（稳定）**：
+
+    ```java
+    // 直接插入排序
+    class Solution {
+        public int[] sortArray(int[] nums) {
+            for (int i = 1; i < nums.length; i++) {
+                int temp = nums[i]; // 当前要排序的元素
+                int j = i;
+                while (j > 0 && nums[j - 1] > temp) {
+                    nums[j] = nums[j - 1];
+                    j--;
+                }
+                nums[j] = temp;
+            }
+            return nums;
+        }
+    }
+    ```
+
+  - **希尔排序（不稳定）**：
+
+    - 将原本有大量记录数的记录进行分组，分割成若干个子序列，然后在这些子序列内分别进行插入排序，当整个序列都基本有序时，再对全体记录进行一次插入排序。
+  
+    ```java
+    // 希尔排序
+    class Solution {
+        public int[] sortArray(int[] nums) {
+            // incre是增量，递减到1
+            for (int incre = nums.length / 2; incre > 0; incre /= 2) {
+                for (int i = incre; i < nums.length; i++) {
+                    int temp = nums[i];
+                    int j = i;
+                    while (j >= incre && nums[j - incre] > temp) {
+                        nums[j] = nums[j - incre];
+                        j -= incre;
+                    }
+                    nums[j] = temp;
+                }
+            }
+            return nums;
+        }
+    }
+    ```
+  
+  - **冒泡排序（稳定）**：
+  
+    ```java
+    // 冒泡排序
+    class Solution {
+        public int[] sortArray(int[] nums) {
+            for (int i = nums.length - 1; i > 0; i--) {
+                boolean flag = true; // 用flag来标记是否发生了元素交换
+                for (int j = 0; j < i; j++) {
+                    if (nums[j] > nums[j + 1]) {
+                        swap(nums, j, j + 1);
+                        flag = false;
+                    }
+                }
+                if (flag) {
+                    break; // 如果没有发生元素交换，说明已经有序，退出循环
+                }
+            }
+            return nums;
+        }
     
+        public void swap(int[] nums, int i, int j) {
+            int temp = nums[i];
+            nums[i] = nums[j];
+            nums[j] = temp;
+        }
+    }
+    ```
+  
+  - **★快速排序（不稳定）**：
+  
+    ```java
+    // 快速排序
+    class Solution {
+        public int[] sortArray(int[] nums) {
+            quickSort(nums, 0, nums.length - 1);
+            return nums;
+        }
+    
+        public void quickSort(int[] nums, int left, int right) {
+            if (left >= right) {
+                return;
+            }
+            int pivot = nums[right]; // 选择数组段中最后一个元素作为分区点
+            int fast, slow;
+            fast = slow = left;
+            while (fast < right) {
+                if (nums[fast] < pivot) {
+                    // 如果快指针指向的元素小于pivot，则交换快慢指针的元素，
+                    // 然后快慢指针都向后移动一位
+                    swap(nums, fast, slow);
+                    slow++;
+                }
+                // 如果快指针指向的元素大于等于pivot，则快指针直接向后移动一位
+                fast++;
+            }
+            // 当循环结束后：
+            //  [left, slow - 1]的元素小于pivot
+            //  [slow, right - 1]的元素大于等于pivot
+            swap(nums, slow, right);
+            // 交换元素后：
+            //  [left, slow - 1]的元素小于pivot
+            //  [slow + 1, right]的元素大于等于pivot
+            quickSort(nums, left, slow - 1);
+            quickSort(nums, slow + 1, right);
+        }
+    
+        public void swap(int[] nums, int i, int j) {
+            int temp = nums[i];
+            nums[i] = nums[j];
+            nums[j] = temp;
+        }
+    }
+    ```
+  
+    - 时间复杂度：最好、平均是 O(nlogn)，最坏是 O(n^2)
+  
+    对快速排序算法的优化：
+  
+    - 当数组长度小于某个阈值，比如说 10 的时候，转为使用插入排序。
+    - 选取 pivot 的时候，不要直接用数组段的最后一个元素作为分区点，而是可以进行采样，比如采样 3 个元素，排序后取中间值作为 pivot。
+      - 还可以判断采样的 3 个元素是否有序，如果有序，可以合理推测数组段大致有序，可以使用直接插入排序，因为直接插入排序在数组段大致有序的情况下时间复杂度可以达到 O(n)。
+  
+  - **选择排序（不稳定）**：
+  
+    ```java
+    // 选择排序
+    class Solution {
+        public int[] sortArray(int[] nums) {
+            for (int i = 0; i < nums.length; i++) {
+                int minIndex = i;
+                for (int j = i + 1; j < nums.length; j++) {
+                    if (nums[j] < nums[minIndex]) {
+                        minIndex = j;
+                    }
+                }
+                swap(nums, i, minIndex);
+            }
+            return nums;
+        }
+    
+        public void swap(int[] nums, int i, int j) {
+            int temp = nums[i];
+            nums[i] = nums[j];
+            nums[j] = temp;
+        }
+    }
+    ```
+  
+  - **★堆排序（不稳定）**：
+  
+    ```java
+    // 堆排序
+    class Solution {
+        public int[] sortArray(int[] nums) {
+            heapSort(nums);
+            return nums;
+        }
+    
+        public void heapSort(int[] nums) {
+            // 1.初始化堆
+            //  初始化堆是从最后一个非叶子结点开始，从右至左，从下至上调整
+            //  最后一个非叶子结点的下标：((nums.length - 1) - 1) / 2 = nums.length / 2 - 1
+            for (int i = nums.length / 2 - 1; i >= 0; i--) {
+                heapify(nums, i, nums.length - 1);
+            }
+            // 2.堆排序的过程
+            for (int i = nums.length - 1; i > 0; i--) {
+                swap(nums, 0, i); // 将大顶堆的根节点和剩余要排序的树的最后一个结点交换
+                heapify(nums, 0, i - 1); // 重新构造成大顶堆
+            }
+        }
+    
+        // 将下标为i的结点作为根结点的子树调整为一个最大堆
+        // len是剩余要排序的树的最后一个结点下标
+        public void heapify(int[] nums, int i, int len) {
+            int temp = nums[i];
+            int parent, child;
+            for (parent = i; parent * 2 + 1 <= len; parent = child) {
+                child = parent * 2 + 1;
+                if (child + 1 <= len && nums[child + 1] > nums[child]) {
+                    // 有右孩子结点并且右孩子结点的值更大
+                    child++; // 让孩子结点指向右结点
+                }
+                if (nums[child] > temp) {
+                    nums[parent] = nums[child];
+                } else {
+                    break;
+                }
+            }
+            nums[parent] = temp;
+        }
+    
+        public void swap(int[] nums, int i, int j) {
+            int temp = nums[i];
+            nums[i] = nums[j];
+            nums[j] = temp;
+        }
+    }
+    ```
+  
+    - 时间复杂度：最好、最坏、平均都是 O(nlogn)
+  
+  - **★归并排序（稳定）**：
+  
+    ```java
+    // 归并排序
+    class Solution {
+        public int[] sortArray(int[] nums) {
+            mergeSort(nums, 0, nums.length - 1);
+            return nums;
+        }
+    
+        public void mergeSort(int[] nums, int left, int right) {
+            if (left >= right) {
+                return;
+            }
+            // left + (right - left) / 2 的写法要优于 (left + right) / 2，因为考虑到了溢出的情况
+            int center = left + (right - left) / 2;
+            // 对左半部分进行归并排序
+            mergeSort(nums, left, center);
+            // 对右半部分进行归并排序
+            mergeSort(nums, center + 1, right);
+            // 将左右两部分合并
+            merge(nums, left, center, right);
+        }
+    
+        // left  是第一个子序列的开始位置
+        // center是第一个子序列的结束位置
+        // right 是第二个子序列的结束位置
+        public void merge(int[] nums, int left, int center, int right) {
+            int[] temp = new int[right - left + 1]; // 用多少，分配多少
+            int i, j, k;
+            i = left; // i指向第一个子序列的开始位置
+            j = center + 1; // j指向第二个子序列的开始位置
+            k = 0;
+            while (i <= center && j <= right) {
+                if (nums[i] <= nums[j]) {
+                    temp[k++] = nums[i++];
+                } else {
+                    temp[k++] = nums[j++];
+                }
+            }
+            // 第一个子序列还有剩余
+            while (i <= center) {
+                temp[k++] = nums[i++];
+            }
+            // 第二个子序列还有剩余
+            while (j <= right) {
+                temp[k++] = nums[j++];
+            }
+            // 将归并后的结果赋给原数组
+            k = 0;
+            for (i = left; i <= right; i++) {
+                nums[i] = temp[k++];
+            }
+        }
+    }
+    ```
+  
+    - 时间复杂度：最好、最坏、平均都是 O(nlogn)
+
+- 如果想要得到时间复杂度为 O(n) 的排序算法，那只能是基于非比较的排序算法，例如**基数排序**、**计数排序**、**桶排序**。
+  - **桶排序**：将待排序的元素分配到有限数量的桶中，然后对每个桶中的元素进行排序，最后将所有桶中的元素合并起来得到有序序列。
+    - 桶排序的关键在于如何将元素分配到桶中以及如何对桶中的元素进行排序。
