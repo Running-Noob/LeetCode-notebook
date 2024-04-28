@@ -3699,6 +3699,8 @@ public class TreeNode {
   2. **确定终止条件：** 写完了递归算法，运行的时候，经常会遇到栈溢出的错误，就是没写终止条件或者终止条件写的不对，操作系统也是用一个栈的结构来保存每一层递归的信息，如果递归没有终止，操作系统的内存栈必然就会溢出。
   3. **确定单层递归的逻辑：** 确定每一层递归需要处理的信息。在这里也就会重复调用自己来实现递归的过程。
 
+  **递归算法的时间复杂度**本质上是要看: **递归的次数 \* 每次递归中的操作次数**。
+
 - 前序遍历：
 
   ```java
@@ -6598,7 +6600,7 @@ class Solution {
   }
   ```
 
-- 这题用回溯也能做，而且不止针对一次只能爬一层楼梯或者两层楼梯，就算一次爬 m 层楼梯，也可以求解，但是回溯法在 LeetCode 中执行超时了：
+- 这题用回溯也能做，而且不止针对一次只能爬一层楼梯或者两层楼梯，就算一次爬 m 层楼梯，也可以求解，但是回溯法在 LeetCode 中执行超时了（就算已经剪枝了）：
 
   ```java
   class Solution {
@@ -6610,19 +6612,24 @@ class Solution {
       }
   
       // climb是已经爬的阶数
-      public void backTracking(int n, int climb) {
+      public boolean backTracking(int n, int climb) {
           if (climb > n) {
-              return;
+              return false;
           }
           if (climb == n) {
               result++;
-              return;
+              return true;
           }
           for (int i = 0; i < steps.length; i++) {
               climb += steps[i];
-              backTracking(n, climb);
+              boolean isEnd = backTracking(n, climb);
               climb -= steps[i]; // 回溯
+              // 如果当前step已经能到楼顶，那后面步伐更大的step就不需要遍历了
+              if (isEnd) { // 剪枝
+                  break;
+              }
           }
+          return false;
       }
   }
   ```
