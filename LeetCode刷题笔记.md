@@ -7015,6 +7015,226 @@ class Solution {
 
 ### ★0-1背包理论基础
 
+#### 01背包 - 二维dp数组
+
+- 以背包最大容量为4，物品为：
+
+  |       | 重量 | 价值 |
+  | :---: | :--: | :--: |
+  | 物品0 |  1   |  15  |
+  | 物品1 |  3   |  20  |
+  | 物品2 |  4   |  30  |
+
+  为例，问背包能背的物品最大价值是多少？
+
+- 动规五部曲分析一波：
+
+  1. **确定 dp 数组及下标含义**：
+
+     - 对于背包问题，有一种写法， 是使用二维数组，即 **`dp[i][j]` 表示从下标为 [0-i] 的物品里任意取，放进容量为 j 的背包，价值总和最大是多少**。
+
+       ![动态规划-背包问题1](https://code-thinking-1253855093.file.myqcloud.com/pics/20210110103003361.png)
+
+  2. **确定递推公式**：
+
+     - 再回顾一下 `dp[i][j]` 的含义：从下标为 [0-i] 的物品里任意取，放进容量为 j 的背包，价值总和最大是多少。
+
+       那么可以有两个方向推出来 `dp[i][j]`：
+
+       - **不放物品 i**：由 `dp[i - 1][j]` 推出，即背包容量为 j，里面不放物品 i 的最大价值，此时 `dp[i][j]` 就是 `dp[i - 1][j]`。(其实就是当物品 i 的重量大于背包 j 的重量时，物品 i 无法放进背包中，所以背包内的价值依然和前面相同。)
+       - **放物品 i**：由 `dp[i - 1][j - weight[i]]` 推出，`dp[i - 1][j - weight[i]]` 为背包容量为 `j - weight[i]` 的时候不放物品 i 的最大价值，那么 `dp[i - 1][j - weight[i]] + value[i]` （物品 i 的价值），就是背包放物品 i 得到的最大价值。
+
+       所以递归公式： `dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - weight[i]] + value[i])`。
+
+  3. **对 dp 数组进行初始化**：
+
+     - 从 `dp[i][j]` 的定义出发，如果背包容量 j 为 0 的话，即 `dp[i][0]`，无论是选取哪些物品，背包价值总和一定为 0。如图：
+
+       ![动态规划-背包问题2](https://code-thinking-1253855093.file.myqcloud.com/pics/2021011010304192.png)
+
+     - 再看其他情况。由状态转移方程 `dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - weight[i]] + value[i])` 可以看出 i 是由 i-1 推导出来，那么 i 为 0 的时候就一定要初始化。
+
+       - `dp[0][j]`，即：i 为 0，存放编号 0 的物品的时候，各个容量的背包所能存放的最大价值。
+         - 那么很明显当 `j < weight[0]` 的时候，`dp[0][j]` 应该是 0，因为背包容量比编号 0 的物品重量还小。
+         - 当 `j >= weight[0]` 时，`dp[0][j]` 应该是 `value[0]`，因为背包容量放足够放编号 0 物品。
+
+     此时 dp 数组初始化情况如图所示：
+
+     ![动态规划-背包问题7](https://code-thinking-1253855093.file.myqcloud.com/pics/20210110103109140.png)
+
+     - `dp[0][j]` 和 `dp[i][0]` 都已经初始化了，那么其他下标应该初始化多少呢？
+
+       - 其实从递归公式： `dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - weight[i]] + value[i]);` 可以看出 `dp[i][j]` 是由左上方数值推导出来了，那么 其他下标初始为什么数值都可以，因为都会被覆盖。但只不过一开始就统一把 dp 数组统一初始为 0，更方便一些。如图：
+
+         ![动态规划-背包问题10](https://code-thinking-1253855093.file.myqcloud.com/pics/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92-%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%9810.jpg)
+
+  4. **确定遍历顺序**：
+
+     - 在如下图中，可以看出，有两个遍历的维度：物品与背包重量。
+
+       ![动态规划-背包问题3](https://code-thinking-1253855093.file.myqcloud.com/pics/2021011010314055.png)
+
+       那么问题来了，先遍历物品还是先遍历背包重量呢？ -> 答案是都可以，因为根据递推公式，`dp[i][j]` 所需要的数据就是左上角，不管是先遍历物品还是先遍历背包重量，都不影响 `dp[i][j]` 公式的推导。
+
+  5. **举例推导 dp 数组**：
+
+     - 来看一下对应的dp数组的数值，如图：
+
+       ![动态规划-背包问题4](https://code-thinking-1253855093.file.myqcloud.com/pics/20210118163425129.jpg)
+
+  - 代码如下：
+
+    ```java
+    public static void test01BagProblem2D(List<Item> itemList, Integer bagVolume) {
+        int size = itemList.size();
+        int[][] dp = new int[size][bagVolume + 1];
+        // dp递推公式：dp[i][j] = max{dp[i - 1][j], dp[i - 1][j - weight[i]] + value[i]}
+        // 初始化
+        for (int i = 0; i < size; i++) {
+            dp[i][0] = 0;
+        }
+        Item item = itemList.get(0);
+        for (int j = item.getWeight(); j <= bagVolume; j++) {
+            dp[0][j] = item.getValue();
+        }
+        // 确定遍历顺序
+        for (int i = 1; i < size; i++) {
+            item = itemList.get(i);
+            for (int j = 1; j <= bagVolume; j++) {
+                if (j - item.getWeight() < 0) {
+                    dp[i][j] = dp[i - 1][j];
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j] , dp[i - 1][j - item.getWeight()] + item.getValue());
+                }
+            }
+        }
+        // 举例推导dp数组
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j <= bagVolume; j++) {
+                System.out.print(dp[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+    ```
+
+#### 01背包 - 一维滚动数组
+
+- 接下来还是用如下这个例子来进行讲解：
+
+  以背包最大容量为4，物品为：
+
+  |       | 重量 | 价值 |
+  | :---: | :--: | :--: |
+  | 物品0 |  1   |  15  |
+  | 物品1 |  3   |  20  |
+  | 物品2 |  4   |  30  |
+
+  为例，问背包能背的物品最大价值是多少？
+
+- 对于背包问题其实状态都是可以压缩的。
+
+  - 在使用二维数组的时候，递推公式：`dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - weight[i]] + value[i]);`
+
+    可以发现，在对 dp[i] 那一层进行赋值时，可以先把 dp[i - 1] 这一层拷贝到 dp[i] 上，那么表达式完全可以是：`dp[i][j] = max(dp[i][j], dp[i][j - weight[i]] + value[i]);` 
+
+    - 与其把 dp[i - 1] 这一层拷贝到 dp[i] 上，不如只用一个一维数组了，只用 dp[j]（一维数组，也可以理解是一个滚动数组）。
+
+    这就是滚动数组的由来，需要满足的条件是**上一层可以重复利用，直接拷贝到当前层**。
+
+- 动规五部曲分析如下：
+
+  1. **确定 dp 数组及下标含义：**
+
+     - 在一维 dp 数组中，dp[j] 表示：容量为 j 的背包，所背的物品价值可以最大为 dp[j]。
+
+  2. **确定递推公式：**
+
+     - 在使用二维数组时，递推公式为：`dp[i][j] = max(dp[i][j], dp[i][j - weight[i]] + value[i]);` 
+     - 由于在一维数组中，把 dp[i - 1] 这一层拷贝到 dp[i] 这一层上，**所以递推公式转变为：**
+       - **`dp[j] = max(dp[j], dp[j - weight[i]] + value[i])`** 
+
+  3. **对 dp 数组进行初始化：**
+
+     - dp[j] 表示：容量为 j 的背包，所背的物品价值可以最大为 dp[j]，那么 dp[0] 就应该是 0，因为背包容量为 0 所背的物品的最大价值就是 0。
+
+       那么 dp 数组除了下标 0 的位置初始为 0，其他下标应该初始化多少呢？
+
+       - 看一下递归公式：`dp[j] = max(dp[j], dp[j - weight[i]] + value[i]);`
+
+         dp 数组在推导的时候一定是取价值最大的数，如果题目给的价值都是正整数那么非 0 下标都初始化为 0 就可以了。**这样才能让 dp 数组在递归公式的过程中取的是最大的价值，而不是被初始值覆盖了**。
+
+  4. **确定遍历顺序：**
+
+     - 这里和二维 dp 数组不同，**二维 dp 遍历的时候，背包容量是从小到大，而一维 dp 遍历的时候，背包是从大到小。**
+
+       ```java
+       for(int i = 0; i < size; i++) { // 遍历物品
+           for(int j = bagVolume; j >= weight[i]; j--) { // 遍历背包容量
+               dp[j] = max(dp[j], dp[j - weight[i]] + value[i]);
+           }
+       }
+       ```
+
+       为什么呢？
+
+       - **倒序遍历是为了保证物品 i 只被放入一次！。但如果一旦正序遍历了，那么物品 i 就会被重复加入多次！**
+
+         举个例子：
+
+         - 物品 0 的重量 `weight[0] = 1`，价值 `value[0] = 15`
+
+         - 如果正序遍历：
+
+           - dp[1] = dp[1 - weight[0]] + value[0] = 15
+           - dp[2] = dp[2 - weight[0]] + value[0] = 30
+
+           此时dp[2]就已经是30了，意味着物品0，被放入了两次，所以不能正序遍历。
+
+         - 为什么倒序遍历，就可以保证物品只放入一次呢？
+
+           - 倒序就是先算dp[2]。
+           - dp[2] = dp[2 - weight[0]] + value[0] = 15
+           - dp[1] = dp[1 - weight[0]] + value[0] = 15
+
+           所以从后往前循环，每次取得状态不会和之前取得状态重合，这样每种物品就只取一次了。
+
+     - **那么问题又来了，为什么二维 dp 数组遍历的时候不用倒序呢？**
+
+       - 因为对于二维 dp，`dp[i][j]` 都是通过上一层即 `dp[i - 1][j]` 计算而来，本层的 `dp[i][j]` 并不会被覆盖！
+       - 一维 dp 数组倒序遍历的原因是：本质上还是一个对二维数组的遍历，并且**右下角的值依赖上一层左上角的值，因此需要保证左边的值仍然是上一层的，从右向左覆盖**。
+
+  5. **举例推导 dp 数组**：
+
+     - 一维 dp，分别用物品 0，物品 1，物品 2 来遍历背包，最终得到结果如下：
+
+       ![动态规划-背包问题9](https://code-thinking-1253855093.file.myqcloud.com/pics/20210110103614769.png)
+
+  代码如下：
+
+  ```java
+  public static void test01BagProblem1D(List<Item> itemList, Integer bagVolume) {
+      int size = itemList.size();
+      int[] dp = new int[bagVolume + 1];
+      // dp递推公式：dp[j] = max{dp[j], dp[j - weight[i]] + value[i]}
+      // 初始化
+      dp[0] = 0;
+      Item item;
+      // 确定遍历顺序
+      for (int i = 0; i < size; i++) {
+          item = itemList.get(i);
+          // 背包容量是从右往左遍历
+          for (int j = bagVolume; j >= item.getWeight(); j--) {
+              dp[j] = Math.max(dp[j], dp[j - item.getWeight()] + item.getValue());
+          }
+      }
+      // 举例推导dp数组
+      for (int j = 0; j <= bagVolume; j++) {
+          System.out.print(dp[j] + " ");
+      }
+  }
+  ```
+
 ## 图论
 
 ### 深度优先搜索理论基础
