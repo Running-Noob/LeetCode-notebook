@@ -25,6 +25,12 @@
 
 - 另外，**递归三部曲**、**回溯三部曲**、**动归五部曲**、**二叉树的层序遍历模板**这些通用的代码模板，要牢记。
 
+- 还有一些特殊的例子：
+
+  - 对于**回文串**，要想到用**二维 dp 数组**来保存字符串的其中一段是否是回文串的判断，“一次计算，一直能用”。
+    - 见动态规划的 “★回文子串” 题目
+
+
 ## 数组
 
 ### 数组理论基础
@@ -5723,7 +5729,806 @@ class Solution {
   }
   ```
 
-### 2.全排列
+### 2.组合总和 III
+
+#### 题目
+
+- 找出所有相加之和为 `n` 的 `k` 个数的组合，且满足下列条件：
+
+  - 只使用数字 1 到 9
+  - 每个数字 **最多使用一次** 
+
+  返回 *所有可能的有效组合的列表* 。该列表不能包含相同的组合两次，组合可以以任何顺序返回。
+
+  **示例 1:**
+
+  ```
+  输入: k = 3, n = 7
+  输出: [[1,2,4]]
+  解释:
+  1 + 2 + 4 = 7
+  没有其他符合的组合了。
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: k = 3, n = 9
+  输出: [[1,2,6], [1,3,5], [2,3,4]]
+  解释:
+  1 + 2 + 6 = 9
+  1 + 3 + 5 = 9
+  2 + 3 + 4 = 9
+  没有其他符合的组合了。
+  ```
+
+  **示例 3:**
+
+  ```
+  输入: k = 4, n = 1
+  输出: []
+  解释: 不存在有效的组合。
+  在[1,9]范围内使用4个不同的数字，我们可以得到的最小和是1+2+3+4 = 10，因为10 > 1，没有有效的组合。
+  ```
+
+  **提示:**
+
+  - `2 <= k <= 9`
+  - `1 <= n <= 60`
+
+#### 思路
+
+- 回溯三部曲：
+
+  - **确定递归函数参数及返回值：**
+
+    - 和 [组合问题](https://programmercarl.com/0077.组合.html) 一样，依然需要一维数组 path 来存放符合条件的结果，二维数组 result 来存放结果集。
+    - 接下来还需要如下参数：
+      - targetSum（int）目标和，也就是题目中的n。
+      - k（int）就是题目中要求 k 个数的集合。
+      - sum（int）为已经收集的元素的总和，也就是 path 里元素的总和。
+      - startIndex（int）为下一层 for 循环搜索的起始位置。
+
+  - **确定终止条件：**
+
+    - 什么时候终止呢？
+      - k 其实就已经限制树的深度，因为就取 k 个元素，树再往下深了没有意义。
+      - 所以如果 path.size() 和 k 相等了，就终止。如果此时 path 里收集到的元素和（sum） 和 targetSum（就是题目描述的 n）相同了，就用 result 收集当前的结果。
+
+  - **确定单层递归逻辑：**
+
+    - 处理过程就是 path 收集每次选取的元素，相当于树型结构里的边，sum 来统计 path 里元素的总和。
+
+      ![216.组合总和III](https://code-thinking-1253855093.file.myqcloud.com/pics/20201123195717975-20230310113546003.png)
+
+      代码如下：
+
+      ```java
+      for (int i = startIndex; i <= 9; i++) {
+          sum += i;
+          path.add(i);
+          backtracking(n, k, sum, i + 1);
+          path.remove(path.size() - 1);
+          sum -= i;
+      }
+      ```
+
+      **别忘了处理过程 和 回溯过程是一一对应的，处理有加，回溯就要有减！** 
+
+  ```java
+  class Solution {
+      private List<List<Integer>> res = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+      public List<List<Integer>> combinationSum3(int k, int n) {
+          backtracking(n, k, 0, 1);
+          return res;
+      }
+  
+      public void backtracking(int n, int k, int sum, int startIndex) {
+          if (path.size() == k) {
+              if (sum == n) {
+                  res.add(new ArrayList<>(path));
+              }
+              return;
+          }
+          for (int i = startIndex; i <= 9; i++) {
+              sum += i;
+              path.add(i);
+              backtracking(n, k, sum, i + 1);
+              path.remove(path.size() - 1);
+              sum -= i;
+          }
+      }
+  }
+  ```
+
+-  剪枝优化：
+
+  - 已选元素总和如果已经大于 n 了，那么往后遍历就没有意义了，直接剪掉。
+
+  ```java
+  class Solution {
+      private List<List<Integer>> res = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+      public List<List<Integer>> combinationSum3(int k, int n) {
+          backtracking(n, k, 0, 1);
+          return res;
+      }
+  
+      public void backtracking(int n, int k, int sum, int startIndex) {
+          if (path.size() == k) {
+              if (sum == n) {
+                  res.add(new ArrayList<>(path));
+              }
+              return;
+          }
+          // 剪枝
+          if (sum > n) {
+              return;
+          }
+          for (int i = startIndex; i <= 9; i++) {
+              sum += i;
+              path.add(i);
+              backtracking(n, k, sum, i + 1);
+              path.remove(path.size() - 1);
+              sum -= i;
+          }
+      }
+  }
+  ```
+
+### 2.1 组合总和
+
+#### 题目
+
+- 给你一个 **无重复元素** 的整数数组 `candidates` 和一个目标整数 `target` ，找出 `candidates` 中可以使数字和为目标数 `target` 的 所有 **不同组合** ，并以列表形式返回。你可以按 **任意顺序** 返回这些组合。
+
+  `candidates` 中的 **同一个** 数字可以 **无限制重复被选取** 。如果至少一个数字的被选数量不同，则两种组合是不同的。 
+
+  对于给定的输入，保证和为 `target` 的不同组合数少于 `150` 个。
+
+  **示例 1：**
+
+  ```
+  输入：candidates = [2,3,6,7], target = 7
+  输出：[[2,2,3],[7]]
+  解释：
+  2 和 3 可以形成一组候选，2 + 2 + 3 = 7 。注意 2 可以使用多次。
+  7 也是一个候选， 7 = 7 。
+  仅有这两种组合。
+  ```
+
+  **示例 2：**
+
+  ```
+  输入: candidates = [2,3,5], target = 8
+  输出: [[2,2,2,2],[2,3,3],[3,5]]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入: candidates = [2], target = 1
+  输出: []
+  ```
+
+  **提示：**
+
+  - `1 <= candidates.length <= 30`
+  - `2 <= candidates[i] <= 40`
+  - `candidates` 的所有元素 **互不相同**
+  - `1 <= target <= 40`
+
+#### 思路
+
+- 因为同一个数字可以被重复选取，所以相比于 `2.组合总和 III`，传入递归函数的不是 i + 1，而是 i。
+
+  ```java
+  class Solution {
+      private List<List<Integer>> res = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+  
+      public List<List<Integer>> combinationSum(int[] candidates, int target) {
+          backtracking(candidates, target, 0, 0);
+          return res;
+      }
+  
+      public void backtracking(int[] candidates, int target, int sum, int startIndex) {
+          if (sum > target) {
+              return;
+          }
+          if (sum == target) {
+              res.add(new ArrayList<>(path));
+              return;
+          }
+          for (int i = startIndex; i < candidates.length; i++) {
+              sum += candidates[i];
+              path.add(candidates[i]);
+              backtracking(candidates, target, sum, i); // 传入 i 表示可以重复读取当前元素
+              path.remove(path.size() - 1); // 回溯
+              sum -= candidates[i]; // 回溯
+          }
+      }
+  }
+  ```
+
+### 2.2 组合总和 II(去重)
+
+#### 题目
+
+- 给定一个候选人编号的集合 `candidates` 和一个目标数 `target` ，找出 `candidates` 中所有可以使数字和为 `target` 的组合。
+
+  `candidates` 中的每个数字在每个组合中只能使用 **一次** 。
+
+  **注意：**解集不能包含重复的组合。 
+
+  **示例 1:**
+
+  ```
+  输入: candidates = [10,1,2,7,6,1,5], target = 8,
+  输出:
+  [
+  [1,1,6],
+  [1,2,5],
+  [1,7],
+  [2,6]
+  ]
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: candidates = [2,5,2,1,2], target = 5,
+  输出:
+  [
+  [1,2,2],
+  [5]
+  ]
+  ```
+
+  **提示:**
+
+  - `1 <= candidates.length <= 100`
+  - `1 <= candidates[i] <= 50`
+  - `1 <= target <= 30`
+
+#### 思路
+
+- **本题的难点在于：集合（数组candidates）有重复元素，但还不能有重复的组合**。
+  - 一些同学可能想了：我把所有组合求出来，再用 set 或者 map 去重，这么做很容易超时！
+  - 所以要在搜索的过程中就去掉重复组合。
+
+- **所谓去重，其实就是使用过的元素不能重复选取。** 
+
+  - 都知道组合问题可以抽象为树形结构，那么“使用过”在这个树形结构上是有两个维度的，一个维度是同一树枝上使用过，一个维度是同一树层上使用过。**没有理解这两个层面上的“使用过” 是造成大家没有彻底理解去重的根本原因。**
+  - 那么问题来了，我们是要同一树层上使用过，还是同一树枝上使用过呢？
+    - 回看一下题目，元素在同一个组合内是可以重复的，怎么重复都没事，但两个组合不能相同。
+    - **所以我们要去重的是同一树层上的“使用过”，同一树枝上的都是一个组合里的元素，不用去重**。
+
+
+  为了理解去重我们来举一个例子，candidates = [1, 1, 2], target = 3，（方便起见candidates已经排序了）
+
+  - **强调一下，树层去重的话，需要对数组排序！**
+
+  - 选择过程树形结构如图所示：
+
+    ![40.组合总和II](https://code-thinking-1253855093.file.myqcloud.com/pics/20230310000918.png)
+
+- 回溯三部曲：
+
+  1. **确定递归函数参数和返回值**：
+
+     - 与 [39.组合总和 (opens new window)](https://programmercarl.com/0039.组合总和.html) 套路相同，此题还需要加一个 bool 型数组 `used`，用来记录同一树枝上的元素是否使用过。这个集合去重的重任就是 `used` 来完成的。
+
+  2. **确定递归终止条件**：
+
+     - 与 [39.组合总和 (opens new window)](https://programmercarl.com/0039.组合总和.html) 相同，终止条件为 `sum > target` 和 `sum == target`。
+
+  3. **确定单层递归逻辑**：
+
+     - 这里与 [39.组合总和 (opens new window)](https://programmercarl.com/0039.组合总和.html) 最大的不同就是要去重了。
+
+     - 前面我们提到：要去重的是“同一树层上的使用过”，如何判断同一树层上元素（相同的元素）是否使用过了呢。
+
+       - **如果`candidates[i] == candidates[i - 1]` 并且 `used[i - 1] == false`，就说明：前一个树枝，使用了candidates[i - 1]，也就是说同一树层使用过candidates[i - 1]**。此时for循环里就应该做continue的操作。这块比较抽象，如图：
+
+         ![40.组合总和II1](https://code-thinking-1253855093.file.myqcloud.com/pics/20230310000954.png)
+
+         在图中将 used 的变化用橘黄色标注上，可以看出在 candidates[i] == candidates[i - 1] 相同的情况下：
+
+         - used[i - 1] == true，说明**同一树枝**candidates[i - 1]使用过
+         - used[i - 1] == false，说明**同一树层**candidates[i - 1]使用过
+
+         为什么 used[i - 1] == false 就是同一树层呢，因为同一树层，used[i - 1] == false 才能表示，当前取的 candidates[i] 是从 candidates[i - 1] 回溯而来的。而 used[i - 1] == true，说明是进入下一层递归，去下一个数，所以是树枝上，如图所示：
+
+         ![img](https://code-thinking-1253855093.file.myqcloud.com/pics/20221021163812.png)
+
+```java
+class Solution {
+    private List<List<Integer>> res = new ArrayList<>();
+    private List<Integer> path = new ArrayList<>();
+
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        Arrays.sort(candidates);  // 首先把candidates排序，让其相同的元素都挨在一起
+        boolean[] used = new boolean[candidates.length];
+        backtracking(candidates, target, 0, 0, used);
+        return res;
+    }
+
+    public void backtracking(int[] candidates, int target, int sum, int startIndex, boolean[] used) {
+        // for循环中的sum + candidates[i] <= target用于剪枝，来代替
+        // if (sum > target) {
+        // 	   return;
+        // }
+        if (sum == target) {
+            res.add(new ArrayList<>(path));
+            return;
+        }
+        for (int i = startIndex; i < candidates.length && sum + candidates[i] <= target; i++) {
+            // used[i - 1] == true，说明同一树枝candidates[i - 1]使用过
+            // used[i - 1] == false，说明同一树层candidates[i - 1]使用过
+            // 要对同一树层使用过的元素进行跳过
+            if (i > 0 && candidates[i] == candidates[i - 1] && used[i - 1] == false) {
+                continue;
+            }
+            sum += candidates[i];
+            path.add(candidates[i]);
+            used[i] = true;
+            backtracking(candidates, target, sum, i + 1, used);
+            path.remove(path.size() - 1); // 回溯
+            sum -= candidates[i]; // 回溯
+            used[i] = false; // 回溯
+        }
+    }
+}
+```
+
+### 3.电话号码的字母组合
+
+#### 题目
+
+- 给定一个仅包含数字 `2-9` 的字符串，返回所有它能表示的字母组合。答案可以按 **任意顺序** 返回。
+
+  给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。
+
+  ![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2021/11/09/200px-telephone-keypad2svg.png)
+
+  **示例 1：**
+
+  ```
+  输入：digits = "23"
+  输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：digits = ""
+  输出：[]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：digits = "2"
+  输出：["a","b","c"]
+  ```
+
+  **提示：**
+
+  - `0 <= digits.length <= 4`
+  - `digits[i]` 是范围 `['2', '9']` 的一个数字。
+
+#### 思路
+
+- 本题要解决如下三个问题：
+
+  1. 数字和字母如何映射
+
+     - 可以使用 map 来做映射
+
+  2. 两个字母就两个 for 循环，三个字符我就三个 for 循环，以此类推，然后发现代码根本写不出来
+
+     - 用回溯来解决 n 个 for 循环的问题。例如：输入："23"，抽象为树形结构，如图所示：
+
+       ![17. 电话号码的字母组合](https://code-thinking-1253855093.file.myqcloud.com/pics/20201123200304469.png)
+
+       - 图中可以看出遍历的深度，就是输入"23"的长度，而叶子节点就是我们要收集的结果，输出["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"]。
+       - **写回溯的时候一定要注意横向遍历的是什么，纵向遍历的是什么。** 
+
+  3. 输入 1 * # 按键等等异常情况
+
+     - 题目中已经限制了，就不用考虑了，但是正常情况下是要考虑的。
+
+  ```java
+  class Solution {
+      private String[] strs = {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+      private List<String> res = new ArrayList<>();
+      private StringBuilder sb = new StringBuilder();
+  
+      public List<String> letterCombinations(String digits) {
+          if (digits == null || digits.length() == 0) { // 排除特殊情况
+              return res;
+          }
+          char[] charArray = digits.toCharArray();
+          backtracking(charArray, 0);
+          return res;
+      }
+  
+      public void backtracking(char[] charArray, int cur) {
+          // 终止条件
+          if (cur == charArray.length) {
+              res.add(sb.toString());
+              return;
+          }
+          String s = strs[charArray[cur] - '0'];
+          // 单层递归逻辑
+          for (int i = 0; i < s.length(); i++) {
+              sb.append(s.charAt(i));
+              backtracking(charArray, cur + 1);
+              sb.deleteCharAt(sb.length() - 1); // 回溯
+          }
+      }
+  }
+  ```
+
+### 4.分割回文串(切割问题)
+
+#### 题目
+
+- 给你一个字符串 `s`，请你将 `s` 分割成一些子串，**使每个子串都是回文串**。返回 `s` 所有可能的分割方案。
+
+  **示例 1：**
+
+  ```
+  输入：s = "aab"
+  输出：[["a","a","b"],["aa","b"]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：s = "a"
+  输出：[["a"]]
+  ```
+
+  **提示：**
+
+  - `1 <= s.length <= 16`
+  - `s` 仅由小写英文字母组成
+
+#### 思路
+
+- 本题涉及到两个关键问题：
+
+  1. 切割问题，有不同的切割方式
+
+     - 这里的切割，想用for循环暴力解法，可能都不那么容易写出来，所以要换一种暴力的方式，就是回溯。
+
+     - 我们来分析一下切割，**其实切割问题类似组合问题**。
+
+       例如对于字符串abcdef：
+
+       - 组合问题：选取一个a之后，在bcdef中再去选取第二个，选取b之后在cdef中再选取第三个.....。
+       - 切割问题：切割一个a之后，在bcdef中再去切割第二段，切割b之后在cdef中再切割第三段.....。
+
+       所以切割问题，也可以抽象为一棵树形结构，如图：
+
+       ![131.分割回文串](https://code-thinking.cdn.bcebos.com/pics/131.%E5%88%86%E5%89%B2%E5%9B%9E%E6%96%87%E4%B8%B2.jpg)
+
+       递归用来纵向遍历，for循环用来横向遍历，切割线（就是图中的红线）切割到字符串的结尾位置，说明找到了一个切割方法。
+
+       - **递归用于增加切割线，for 循环用于移动切割线的位置**。
+
+       此时可以发现，切割问题的回溯搜索的过程和组合问题的回溯搜索的过程是差不多的。
+
+  2. 判断回文
+
+     - 判断一个字符串是否是回文。可以使用双指针法，一个指针从前向后，一个指针从后向前，如果前后指针所指向的元素是相等的，就是回文字符串了。
+
+```java
+class Solution {
+    private List<List<String>> res = new ArrayList<>();
+    private List<String> path = new ArrayList<>();
+    public List<List<String>> partition(String s) {
+        backtracking(s, 0);
+        return res;
+    }
+
+    // startIndex就是切割线
+    public void backtracking(String s, int startIndex) {
+        // 找到了一组切割方案
+        if (startIndex >= s.length()) {
+            res.add(new ArrayList<>(path));
+            return;
+        }
+        for (int i = startIndex; i < s.length(); i++) {
+            if(isPalindrome(s, startIndex, i)) { // 如果是回文串，就保存
+                path.add(s.substring(startIndex, i + 1));
+            } else {
+                continue;
+            }
+            backtracking(s, i + 1); // 继续向下切割
+            path.remove(path.size() - 1); // 回溯
+        }
+    }
+
+    // 判断是否是回文串
+    public boolean isPalindrome(String s, int left, int right) {
+        while (left <= right) {
+            if (s.charAt(left) != s.charAt(right)) {
+                return false;
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+}
+```
+
+### 5.复原IP地址
+
+#### 题目
+
+- **有效 IP 地址** 正好由四个整数（每个整数位于 `0` 到 `255` 之间组成，且不能含有前导 `0`），整数之间用 `'.'` 分隔。
+
+  - 例如：`"0.1.2.201"` 和` "192.168.1.1"` 是 **有效** IP 地址，但是 `"0.011.255.245"`、`"192.168.1.312"` 和 `"192.168@1.1"` 是 **无效** IP 地址。
+
+  给定一个只包含数字的字符串 `s` ，用以表示一个 IP 地址，返回所有可能的**有效 IP 地址**，这些地址可以通过在 `s` 中插入 `'.'` 来形成。你 **不能** 重新排序或删除 `s` 中的任何数字。你可以按 **任何** 顺序返回答案。
+
+  **示例 1：**
+
+  ```
+  输入：s = "25525511135"
+  输出：["255.255.11.135","255.255.111.35"]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：s = "0000"
+  输出：["0.0.0.0"]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：s = "101023"
+  输出：["1.0.10.23","1.0.102.3","10.1.0.23","10.10.2.3","101.0.2.3"]
+  ```
+
+  **提示：**
+
+  - `1 <= s.length <= 20`
+  - `s` 仅由数字组成
+
+#### 思路
+
+- 只要意识到这是切割问题，**切割问题就可以使用回溯搜索法把所有可能性搜出来**，和刚做过的[131.分割回文串 (opens new window)](https://programmercarl.com/0131.分割回文串.html)就十分类似了。切割问题可以抽象为树型结构，如图：
+
+  ![93.复原IP地址](https://code-thinking-1253855093.file.myqcloud.com/pics/20201123203735933.png)
+
+- 回溯三部曲：
+
+  1. **确定递归函数参数及返回值：**
+
+     - 在[131.分割回文串 (opens new window)](https://programmercarl.com/0131.分割回文串.html)中我们就提到切割问题类似组合问题。
+
+       `startIndex` 一定是需要的，因为不能重复分割，记录下一层递归分割的起始位置。
+
+       本题我们还需要一个变量 `depth`，记录已经分段的次数。
+
+  2. **确定递归终止条件：**
+
+     - 终止条件和[131.分割回文串 (opens new window)](https://programmercarl.com/0131.分割回文串.html)情况就不同了，本题明确要求只会分成 4 段，所以不能用切割线切到最后作为终止条件，而是分割的段数作为终止条件。
+
+       depth 表示分段数量，depth 为 4 说明字符串分成了 4 段了。
+
+       然后验证一下第四段是否合法，如果合法就加入到结果集里。
+
+  3. **确定单层递归逻辑：**
+
+     - 在[131.分割回文串 (opens new window)](https://programmercarl.com/0131.分割回文串.html)中已经讲过在循环遍历中如何截取子串：
+
+       - 在`for (int i = startIndex; i < s.length(); i++)`循环中 [startIndex, i] 这个区间就是截取的子串，需要判断这个子串是否合法。
+
+         - 如果合法就在字符串后面加上符号`.`表示已经分割。
+
+         - 如果不合法就结束本层循环，如图中剪掉的分支：
+
+           ![93.复原IP地址](https://code-thinking-1253855093.file.myqcloud.com/pics/20201123203735933-20230310132314109.png)
+
+```java
+class Solution {
+    private List<String> res = new ArrayList<>();
+    private StringBuilder sb = new StringBuilder();
+    public List<String> restoreIpAddresses(String s) {
+        if (s.length() > 12) { // 剪枝
+            return res;
+        }
+        backtracking(s, 0, 0);
+        return res;
+    }
+
+    public void backtracking(String s, int startIndex, int depth) {
+        if (depth == 4) { // 已经分成四段了
+            if (startIndex == s.length()) {
+                res.add(sb.toString());
+            }
+            return;
+        }
+        for (int i = startIndex; i < s.length(); i++) {
+            String temp = s.substring(startIndex, i + 1);
+            // 判断是否合法
+            if ((temp.length() > 1 && temp.charAt(0) == '0') 
+                || temp.length() > 3 
+                || Integer.parseInt(temp) > 255) {
+                return;
+            }
+            sb.append(temp);
+            if (depth < 3) {
+                sb.append(".");
+            }
+            backtracking(s, i + 1, depth + 1);
+            if (depth < 3) {
+                sb.delete(sb.length() - (i + 2 - startIndex), sb.length()); // 回溯，要把"."考虑进来
+            } else {
+                sb.delete(sb.length() - (i + 1 - startIndex), sb.length()); // 回溯
+            }
+        }
+    }
+}
+```
+
+### 6.子集问题
+
+#### 题目
+
+- 给你一个整数数组 `nums` ，数组中的元素 **互不相同** 。返回该数组所有可能的子集（幂集）。
+
+  解集 **不能** 包含重复的子集。你可以按 **任意顺序** 返回解集。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [1,2,3]
+  输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [0]
+  输出：[[],[0]]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 10`
+  - `-10 <= nums[i] <= 10`
+  - `nums` 中的所有元素 **互不相同**
+
+#### 思路
+
+- 如果把 子集问题、组合问题、分割问题都抽象为一棵树的话，**那么组合问题和分割问题都是收集树的叶子节点，而子集问题是找树的所有节点！**
+
+  以示例中 nums = [1,2,3] 为例把求子集抽象为树型结构，如下：
+
+  ![78.子集](https://code-thinking.cdn.bcebos.com/pics/78.%E5%AD%90%E9%9B%86.png)
+
+  从图中红线部分，可以看出**遍历这个树的时候，把所有节点都记录下来，就是要求的子集集合**。
+
+- 回溯三部曲：
+
+  1. **确定递归函数参数及返回值：**
+
+     - 子集也是一种组合问题，因为它的集合是无序的，子集 {1,2} 和子集 {2,1} 是一样的。
+
+       那么既然是无序，取过的元素不会重复取，写回溯算法的时候，for 就要从 startIndex 开始，而不是从 0 开始。所以需要传入参数 startIndex。
+
+  2. **确定递归终止条件：**
+
+     - 从上图可以看出，剩余集合为空的时候，就是叶子节点。那么什么时候剩余集合为空呢？
+       - 就是 startIndex 已经大于数组的长度了，就终止了，因为没有元素可取了。
+
+  3. **确定单层递归逻辑：**
+
+     - **求取子集问题，不需要任何剪枝！因为子集就是要遍历整棵树**。
+
+```java
+class Solution {
+    private List<List<Integer>> res = new ArrayList<>();
+    private List<Integer> path = new ArrayList<>();
+    public List<List<Integer>> subsets(int[] nums) {
+        backtracking(nums, 0);
+        return res;
+    }
+
+    public void backtracking(int[] nums, int startIndex) {
+        res.add(new ArrayList<>(path)); // 收集树上的所有节点
+        if (startIndex >= nums.length) {
+            return;
+        }
+        for (int i = startIndex; i < nums.length; i++) {
+            path.add(nums[i]);
+            backtracking(nums, i + 1);
+            path.remove(path.size() - 1); // 回溯
+        }
+    }
+}
+```
+
+- **收集树上所有的节点，那就在进入回溯函数的时候就 `add`。**
+
+  **收集树中的叶子结点，那就在终止条件满足时才 `add`。**
+
+### 6.1 子集 II(去重)
+
+#### 题目
+
+- 给你一个整数数组 `nums` ，其中可能包含重复元素，请你返回该数组所有可能的子集（幂集）。
+
+  解集 **不能** 包含重复的子集。返回的解集中，子集可以按 **任意顺序** 排列。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [1,2,2]
+  输出：[[],[1],[1,2],[1,2,2],[2],[2,2]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [0]
+  输出：[[],[0]]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 10`
+  - `-10 <= nums[i] <= 10`
+
+#### 思路
+
+- 关于回溯算法中的去重问题，**在[40.组合总和II (opens new window)](https://programmercarl.com/0040.组合总和II.html)中已经详细讲解过了，和本题是一个套路**。用示例中的[1, 2, 2] 来举例，如图所示： （**注意去重需要先对集合排序**）
+
+  ![90.子集II](https://code-thinking-1253855093.file.myqcloud.com/pics/20201124195411977.png)
+
+  从图中可以看出，**同一树层上重复取 2 就要过滤掉，同一树枝上就可以重复取 2**，因为同一树枝上元素的集合才是唯一子集。
+
+```java
+class Solution {
+    private List<List<Integer>> res = new ArrayList<>();
+    private List<Integer> path = new ArrayList<>();
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        boolean[] used = new boolean[nums.length];
+        Arrays.sort(nums); // 排序让相同的元素挨在一起
+        backtracking(nums, 0, used);
+        return res;
+    }
+
+    public void backtracking(int[] nums, int startIndex, boolean[] used) {
+        res.add(new ArrayList<>(path)); // 保存树上的各个节点
+        if (startIndex >= nums.length) {
+            return;
+        }
+        for (int i = startIndex; i < nums.length; i++) {
+            if (i > 0 && nums[i - 1] == nums[i] && used[i - 1] == false) {
+                continue;
+            }
+            path.add(nums[i]);
+            used[i] = true;
+            backtracking(nums, i + 1, used);
+            used[i] = false; // 回溯
+            path.remove(path.size() - 1); // 回溯
+        }
+    }
+}
+```
+
+### 7.全排列
 
 #### 题目
 
@@ -8464,7 +9269,7 @@ class Solution {
   }
   ```
 
-### 16.回文子串
+### 16.★回文子串
 
 #### 题目
 
