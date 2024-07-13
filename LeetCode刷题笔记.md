@@ -3707,7 +3707,112 @@ public class TreeNode {
 }
 ```
 
-### 1.二叉树的递归遍历
+### 1.★二叉树的序列化和反序列化(由输入的字符串构建二叉树)
+
+#### 题目
+
+- 序列化是将一个数据结构或者对象转换为连续的比特位的操作，进而可以将转换后的数据存储在一个文件或者内存中，同时也可以通过网络传输到另一个计算机环境，采取相反方式重构得到原数据。
+
+  请设计一个算法来实现二叉树的序列化与反序列化。这里不限定你的序列 / 反序列化算法执行逻辑，你只需要保证一个二叉树可以被序列化为一个字符串并且将这个字符串反序列化为原始的树结构。
+
+  **提示:** 输入输出格式与 LeetCode 目前使用的方式一致，详情请参阅 [LeetCode 序列化二叉树的格式](https://support.leetcode.cn/hc/kb/article/1567641/)。你并非必须采取这种方式，你也可以采用其他的方法解决这个问题。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/09/15/serdeser.jpg)
+
+  ```
+  输入：root = [1,2,3,null,null,4,5]
+  输出：[1,2,3,null,null,4,5]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：root = []
+  输出：[]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：root = [1]
+  输出：[1]
+  ```
+
+  **示例 4：**
+
+  ```
+  输入：root = [1,2]
+  输出：[1,2]
+  ```
+
+  **提示：**
+
+  - 树中结点数在范围 `[0, 10^4]` 内
+  - `-1000 <= Node.val <= 1000`
+
+#### 思路
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+public class Codec {
+    // 序列化就是层序遍历的方式
+    public String serialize(TreeNode root) {
+        if (root == null) return "[]";
+        StringBuilder res = new StringBuilder("[");
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        while (!queue.isEmpty()) {
+            TreeNode node = queue.poll();
+            if (node != null) {
+                res.append(node.val).append(",");
+                queue.add(node.left);
+                queue.add(node.right);
+            }
+            else {
+                res.append("null,");
+            }
+        }
+        res.deleteCharAt(res.length() - 1); // 去除最后的","
+        res.append("]");
+        return res.toString();
+    }
+    // 反序列化就是根据元素在数组下标位置的关系来得到
+    public TreeNode deserialize(String data) {
+        if (data.equals("[]")) return null;
+        String[] vals = data.substring(1, data.length() - 1).split(",");
+        TreeNode root = new TreeNode(Integer.parseInt(vals[0]));
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        int i = 1;
+        while (!queue.isEmpty()) {
+            TreeNode node = queue.poll();
+            if (!vals[i].equals("null")) {
+                node.left = new TreeNode(Integer.parseInt(vals[i]));
+                queue.offer(node.left);
+            }
+            i++;
+            if (!vals[i].equals("null")) {
+                node.right = new TreeNode(Integer.parseInt(vals[i]));
+                queue.offer(node.right);
+            }
+            i++;
+        }
+        return root;
+    }
+}
+```
+
+### 2.二叉树的递归遍历
 
 #### ★递归三部曲
 
@@ -3779,7 +3884,7 @@ public class TreeNode {
   }
   ```
 
-### 2.二叉树的迭代遍历(栈)
+### 3.二叉树的迭代遍历(栈)
 
 - **递归的实现就是：每一次递归调用都会把函数的局部变量、参数值和返回地址等压入调用栈中**，然后递归返回的时候，从栈顶弹出上一次递归的各项参数，所以这就是递归为什么可以返回上一层位置的原因。那用栈也是可以实现二叉树的前中后序遍历的。
 
@@ -3935,7 +4040,7 @@ public class TreeNode {
   - 可以看出前序和中序是完全两种代码风格，并不像递归写法那样代码稍做调整，就可以实现前后中序。
     - **这是因为前序遍历中访问结点（遍历结点）和处理结点（将元素放进result数组中）可以同步处理，但是中序就无法做到同步！**
 
-### 3.二叉树的统一迭代法
+### 4.二叉树的统一迭代法
 
 - 二叉树的统一迭代法就在于判断当前弹栈元素是不是第一次弹栈，如果是第一次弹栈，就要进行相应的再压栈处理，否则就输出到结果集中。
 
@@ -4043,7 +4148,7 @@ public class TreeNode {
     }
     ```
 
-### 4.二叉树的层序遍历(队列)
+### 5.二叉树的层序遍历(队列)
 
 - 层序遍历一个二叉树。就是从左到右一层一层的去遍历二叉树。这种遍历的方式和我们之前讲过的都不太一样。
 
@@ -4083,7 +4188,7 @@ class Solution {
 }
 ```
 
-#### 4.1 二叉树的层次遍历II
+#### 5.1 二叉树的层次遍历II
 
 ##### 题目
 
@@ -4153,7 +4258,7 @@ class Solution {
   }
   ```
 
-#### 4.2 二叉树的右视图
+#### 5.2 二叉树的右视图
 
 ##### 题目
 
@@ -4221,7 +4326,7 @@ class Solution {
   }
   ```
 
-#### 4.3 二叉树的层平均值
+#### 5.3 二叉树的层平均值
 
 ##### 题目
 
@@ -4287,7 +4392,7 @@ class Solution {
   }
   ```
 
-#### 4.4 N叉树的层序遍历
+#### 5.4 N叉树的层序遍历
 
 ##### 题目
 
@@ -4350,7 +4455,7 @@ class Solution {
   }
   ```
 
-#### 4.5 在每个树行中找最大值
+#### 5.5 在每个树行中找最大值
 
 ##### 题目
 
@@ -4413,7 +4518,7 @@ class Solution {
   }
   ```
 
-#### 4.6 填充每个结点的下一个右侧结点指针II
+#### 5.6 填充每个结点的下一个右侧结点指针II
 
 ##### 题目
 
@@ -4490,7 +4595,7 @@ class Solution {
   }
   ```
 
-#### 4.7 二叉树的最大深度
+#### 5.7 二叉树的最大深度
 
 ##### 题目
 
@@ -4585,7 +4690,7 @@ class Solution {
   }
   ```
 
-#### 4.8 二叉树的最小深度
+#### 5.8 二叉树的最小深度
 
 ##### 题目
 
@@ -4686,7 +4791,7 @@ class Solution {
   }
   ```
 
-### 5.翻转二叉树
+### 6.翻转二叉树
 
 #### 题目
 
@@ -4783,7 +4888,7 @@ class Solution {
 
     - 但是递归比较玄学，我还是喜欢用迭代。
 
-### 6.对称二叉树
+### 7.对称二叉树
 
 #### 题目
 
@@ -4884,7 +4989,7 @@ class Solution {
     }
     ```
 
-### 7.平衡二叉树
+### 8.平衡二叉树
 
 #### 题目
 
@@ -4993,7 +5098,7 @@ class Solution {
   }
   ```
 
-### 8.二叉树的所有路径
+### 9.二叉树的所有路径
 
 #### 题目
 
@@ -5110,7 +5215,7 @@ class Solution {
 
   - 注意这里**结点和路径同时入栈出栈**。
 
-### 9.二叉搜索树中的搜索
+### 10.二叉搜索树中的搜索
 
 #### 题目
 
@@ -5165,7 +5270,7 @@ class Solution {
   }
   ```
 
-### 10.验证二叉搜索树
+### 11.验证二叉搜索树
 
 #### 题目
 
@@ -5272,7 +5377,7 @@ class Solution {
   ```
 
 
-### 11.二叉搜索树中的插入操作
+### 12.二叉搜索树中的插入操作
 
 #### 题目
 
@@ -5359,7 +5464,7 @@ class Solution {
   }
   ```
 
-### 12.二叉搜索树中的删除操作
+### 13.二叉搜索树中的删除操作
 
 #### 题目
 
@@ -5473,6 +5578,224 @@ class Solution {
   ```
 
 - 二叉搜索树删除结点比增加结点复杂的多。**因为二叉搜索树添加结点只需要在叶子上添加就可以的，不涉及到结构的调整，而删除结点操作涉及到结构的调整。** 
+
+### 14.最长同值路径
+
+#### 题目
+
+- 给定一个二叉树的 `root` ，返回 *最长的路径的长度* ，这个路径中的 *每个节点具有相同值* 。 这条路径可以经过也可以不经过根节点。
+
+  **两个节点之间的路径长度** 由它们之间的边数表示。
+
+  **示例 1:**
+
+  ![img](https://assets.leetcode.com/uploads/2020/10/13/ex1.jpg)
+
+  ```
+  输入：root = [5,4,5,1,1,5]
+  输出：2
+  ```
+
+  **示例 2:**
+
+  ![img](https://assets.leetcode.com/uploads/2020/10/13/ex2.jpg)
+
+  ```
+  输入：root = [1,4,5,4,4,5]
+  输出：2
+  ```
+
+  **提示:**
+
+  - 树的节点数的范围是 `[0, 10^4]` 
+  - `-1000 <= Node.val <= 1000`
+  - 树的深度将不超过 `1000` 
+
+#### 思路
+
+- 可以用 dfs 来做，需要定义两个变量：
+
+  - `cur` 用来表示以当前节点为根节点时，单边的最大路径长度
+  - `max` 用来表示以当前节点为根节点时，最大路径长度(可能同时包含左边和右边而不是单边，例如示例2)
+
+  ```java
+  /**
+   * Definition for a binary tree node.
+   * public class TreeNode {
+   *     int val;
+   *     TreeNode left;
+   *     TreeNode right;
+   *     TreeNode() {}
+   *     TreeNode(int val) { this.val = val; }
+   *     TreeNode(int val, TreeNode left, TreeNode right) {
+   *         this.val = val;
+   *         this.left = left;
+   *         this.right = right;
+   *     }
+   * }
+   */
+  class Solution {
+      private int res = 0;
+  
+      public int longestUnivaluePath(TreeNode root) {
+          dfs(root);
+          return res;
+      }
+  
+      public int dfs(TreeNode node) {
+          // 确定终止条件
+          if (node == null) {
+              return 0;
+          }
+          int lcur = dfs(node.left);
+          int rcur = dfs(node.right);
+          // 确定单层递归逻辑
+          int cur = 0; // 以当前节点为根节点时单边的最大路径长度
+          int max = 0; // 以当前节点为根节点时的最大路径长度(可能同时包含左边和右边而不是单边)
+          if (node.left != null && node.val == node.left.val) {
+              cur = lcur + 1;
+              max += (lcur + 1);
+          }
+          if (node.right != null && node.val == node.right.val) {
+              cur = Math.max(cur, rcur + 1); // 因为是单边，所以取最大值
+              max += (rcur + 1); // 因为是双边，所以左右都加
+          }
+          res = Math.max(res, max); // 更新结果
+          return cur;
+      }
+  }
+  ```
+
+### 14.1 最长同值路径(ACM)
+
+#### 题目
+
+- 题目描述
+
+  给定一个二叉树的 root ，返回最长的路径的长度，这个路径中的每节点具有相同值。这条路径可以经过也可以不经过根节点。两个节点之间的路径长度 由它们之间的边数表示。 
+
+  树的节点数的范围是 [0,10^4] -1000 <= Node.val <= 1000
+
+  树的深度将不超过 18 层
+
+  ###### 输入描述
+
+  输入共两行，第一行是一个整数 n，表示第二行的字符串数。
+
+  第二行包含 n 个字符串，空格隔开，数字的字符串代表该节点存在，并且值为数字，null 代表是一个空结点。
+
+  ###### 输出描述
+
+  输出一个正整数，代表最长路径长度。
+
+  ###### 输入示例
+
+  ```
+  7
+  5 4 5 1 1 null 5
+  ```
+
+  ###### 输出示例
+
+  ```
+  2
+  ```
+
+  ###### 提示信息
+
+  通过层序遍历构建二叉树如下：
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240711/20240711180622_47583.png)
+
+#### 思路
+
+- 在 ACM 模式下，该题是 `1.二叉树的序列化和反序列化` 和 `14.最长同值路径` 的结合。
+
+```java
+import java.util.Scanner;
+import java.util.Queue;
+import java.util.LinkedList;
+
+public class Main{
+    private static int res = 0;
+    
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        if (n <= 1) { // 排除特殊情况
+            System.out.println(0);
+            return;
+        }
+        in.nextLine();
+        String data = in.nextLine();
+        TreeNode root = deserialize(data, n);
+        dfs(root);
+        System.out.println(res);
+    }
+    
+    // 求最长同值路径
+    public static int dfs(TreeNode node) {
+        if (node == null) {
+            return 0;
+        }
+        int lcur = dfs(node.left);
+        int rcur = dfs(node.right);
+        int cur = 0;
+        int max = 0;
+        if (node.left != null && node.left.val == node.val) {
+            cur = lcur + 1;
+            max += (lcur + 1);
+        }
+        if (node.right != null && node.right.val == node.val) {
+            cur = Math.max(cur, rcur + 1);
+            max += (rcur + 1);
+        }
+        res = Math.max(res, max);
+        return cur;
+    }
+    
+    // 将字符串反序列化为二叉树
+    public static TreeNode deserialize(String data, int n) {
+        String[] vals = data.split(" ");
+        TreeNode root = new TreeNode(Integer.parseInt(vals[0]));
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        int i = 1;
+        while (!queue.isEmpty()) {
+            TreeNode node = queue.poll();
+            if (!vals[i].equals("null")) {
+                node.left = new TreeNode(Integer.parseInt(vals[i]));
+                queue.offer(node.left);
+            }
+            i++;
+            if (i >= n) {
+                break;
+            }
+            if (!vals[i].equals("null")) {
+                node.right = new TreeNode(Integer.parseInt(vals[i]));
+                queue.offer(node.right);
+            }
+            i++;
+            if (i >= n) {
+                break;
+            }
+        }
+        return root;
+    }
+}
+
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    
+    TreeNode() {}
+    
+    TreeNode(int val) {
+        this.val = val;
+    }
+}
+```
 
 ## 回溯算法
 
