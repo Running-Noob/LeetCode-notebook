@@ -5670,7 +5670,7 @@ class Solution {
 
 #### 题目
 
-- 题目描述
+- **题目描述**
 
   给定一个二叉树的 root ，返回最长的路径的长度，这个路径中的每节点具有相同值。这条路径可以经过也可以不经过根节点。两个节点之间的路径长度 由它们之间的边数表示。 
 
@@ -5678,30 +5678,30 @@ class Solution {
 
   树的深度将不超过 18 层
 
-  ###### 输入描述
+  **输入描述**
 
   输入共两行，第一行是一个整数 n，表示第二行的字符串数。
 
   第二行包含 n 个字符串，空格隔开，数字的字符串代表该节点存在，并且值为数字，null 代表是一个空结点。
 
-  ###### 输出描述
+  **输出描述**
 
   输出一个正整数，代表最长路径长度。
 
-  ###### 输入示例
+  **输入示例**
 
   ```
   7
   5 4 5 1 1 null 5
   ```
 
-  ###### 输出示例
+  **输出示例**
 
   ```
   2
   ```
 
-  ###### 提示信息
+  **提示信息**
 
   通过层序遍历构建二叉树如下：
 
@@ -6851,7 +6851,107 @@ class Solution {
 }
 ```
 
-### 7.全排列
+### 7.递增子序列
+
+#### 题目
+
+- 给你一个整数数组 `nums` ，找出并返回所有该数组中不同的递增子序列，递增子序列中 **至少有两个元素** 。你可以按 **任意顺序** 返回答案。
+
+  数组中可能含有重复元素，如出现两个整数相等，也可以视作递增序列的一种特殊情况。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [4,6,7,7]
+  输出：[[4,6],[4,6,7],[4,6,7,7],[4,7],[4,7,7],[6,7],[6,7,7],[7,7]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [4,4,3,2,1]
+  输出：[[4,4]]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 15`
+  - `-100 <= nums[i] <= 100`
+
+#### 思路
+
+- 这个递增子序列比较像是取有序的子集。而且本题也要求不能有相同的递增子序列。
+
+  - 这又是子集，又是去重，让人不由自主的想起了刚刚讲过的 [90.子集II (opens new window)](https://programmercarl.com/0090.子集II.html)。
+
+  就是因为太像了，更要注意差别所在，要不就掉坑里了！
+
+- 在 [90.子集II (opens new window)](https://programmercarl.com/0090.子集II.html) 中我们是**通过排序，先让原数组中相同的元素挨在一起，再加一个标记数组来达到去重的目的**。而本题求自增子序列，是不能对原数组进行排序的，因为排完序的数组都是自增子序列了。
+
+  - **所以不能使用之前的去重逻辑！**本题给出的示例，还是一个有序数组 [4, 6, 7, 7]，这更容易误导大家按照排序的思路去做了。为了有鲜明的对比，用 [4, 7, 6, 7] 这个数组来举例，抽象为树形结构如图：
+
+  ![491. 递增子序列1](https://code-thinking-1253855093.file.myqcloud.com/pics/20201124200229824.png)
+
+  - 在图中可以看出，**同一父节点下的同层上使用过的元素就不能再使用了** 
+
+  ```java
+  class Solution {
+      private List<List<Integer>> res = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+  
+      public List<List<Integer>> findSubsequences(int[] nums) {
+          backtracking(nums, 0);
+          return res;
+      }
+  
+      public void backtracking(int[] nums, int startIndex) {
+          if (path.size() >= 2) {
+              res.add(new ArrayList<>(path));
+          }
+          if (startIndex >= nums.length) {
+              return;
+          }
+          boolean[] used = new boolean[201]; // 因为题目限制-100 <= nums[i] <= 100
+          for (int i = startIndex; i < nums.length; i++) {
+              if ((!path.isEmpty() && path.get(path.size() - 1) > nums[i])
+                  || used[nums[i] + 100]) {
+                  continue;
+              }
+              path.add(nums[i]);
+              used[nums[i] + 100] = true; // 用于限制同一父节点下的同层上使用过的元素不能再被使用
+              backtracking(nums, i + 1);
+              path.remove(path.size() - 1); // 回溯
+          }
+      }
+  }
+  ```
+
+- 注意这题和 [90.子集II (opens new window)](https://programmercarl.com/0090.子集II.html) 的关系：
+  1. 这题要求递增子序列，那么就不能对原数据进行修改，即不能对原数组进行排序。
+  
+  2. 由于求递增子序列这个要求，潜在地把一些重复的子集给过滤掉了，例如有子集 [1, 4]，而不会有子集 [4, 1]，所以用上面的代码是可以对本题进行求解的。同时，上面的方法同样可以求解 [90.子集II (opens new window)](https://programmercarl.com/0090.子集II.html)，因为**上面的代码可以保证同一父节点下的同层上使用过的元素不能再被使用**，但是需要注意，在用上面的代码求解 [90.子集II (opens new window)](https://programmercarl.com/0090.子集II.html) 问题时，**同样需要先对原数组进行排序**，如果没有对数组提前进行排序，例如对于数组 [4, 1, 4]，如果没有排序，那么用上面的代码，子集 [4, 1] 和子集 [1, 4] 都会出现，就出现子集重复的问题。
+  
+     - 从效率来看，还是
+  
+       ```java
+       // 方法一
+       if (i > 0 && nums[i - 1] == nums[i] && used[i - 1] == false) {
+           continue;
+       }
+       ```
+  
+       的效率要高于
+  
+       ```java
+       // 方法二
+       if (set.contains(nums[i])) { // 用set集合代替used数组进行判断
+           continue;
+       }
+       ```
+  
+     - 因为方法一中 `used` 数组是全局变量，方法二中 set 集合是局部变量，前者空间复杂度为 O(n)，后者空间复杂度为 O(n^2)。另外，判断元素是否在集合中，需要频繁地使用哈希函数进行映射，也会增加执行时间。
+
+### 8.全排列
 
 #### 题目
 
@@ -6992,6 +7092,132 @@ class Solution {
     }
     ```
 
+### 8.1 全排列 II(去重)
+
+#### 题目
+
+- 给定一个可包含重复数字的序列 `nums` ，***按任意顺序*** 返回所有不重复的全排列。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [1,1,2]
+  输出：
+  [[1,1,2],
+   [1,2,1],
+   [2,1,1]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [1,2,3]
+  输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 8`
+  - `-10 <= nums[i] <= 10`
+
+#### 思路
+
+- 这道题目和 [46.全排列 (opens new window)](https://programmercarl.com/0046.全排列.html) 的区别在于**给定一个可包含重复数字的序列**，要返回**所有不重复的全排列**。这里又涉及到去重了。
+
+  - 在 [40.组合总和II (opens new window)](https://programmercarl.com/0040.组合总和II.html)、[90.子集II (opens new window)](https://programmercarl.com/0090.子集II.html) 中详细讲解了组合问题和子集问题如何去重。那么排列问题其实也是一样的套路。
+  - **还要强调的是去重一定要对元素进行排序，这样我们才方便通过相邻的节点来判断是否重复使用了**。
+
+- 以示例中的 [1,1,2]为例 （为了方便举例，已经排序）抽象为一棵树，去重过程如图：
+
+  ![47.全排列II1](https://code-thinking-1253855093.file.myqcloud.com/pics/20201124201331223.png)
+
+  - 图中我们对同一树层，前一位（也就是nums[i-1]）如果使用过，那么就进行去重。
+
+  **一般来说：组合问题和排列问题是在树形结构的叶子节点上收集结果，而子集问题就是取树上所有节点的结果**。
+
+  ```java
+  class Solution {
+      private List<List<Integer>> res = new ArrayList<>();
+      private List<Integer> path = new ArrayList<>();
+  
+      public List<List<Integer>> permuteUnique(int[] nums) {
+          Arrays.sort(nums); // 去重问题一定要对数组元素进行排序,使得相同值的元素挨在一起
+          boolean[] used = new boolean[nums.length];
+          backtracking(nums, used);
+          return res;
+      }
+  
+      public void backtracking(int[] nums, boolean[] used) {
+          if (path.size() == nums.length) {
+              res.add(new ArrayList<>(path));
+              return;
+          }
+          // used[i - 1] == true，说明同⼀树⽀nums[i - 1]使⽤过
+          // used[i - 1] == false，说明同⼀树层nums[i - 1]使⽤过
+          // 如果同⼀树层nums[i - 1]使⽤过(used[i - 1] == false)则直接跳过
+          // 如果当前元素使用过也直接跳过(used[i] == true)
+          for (int i = 0; i < nums.length; i++) {
+              if (used[i] || (i > 0 && nums[i - 1] == nums[i] && used[i - 1] == false)) {
+                  continue;
+              }
+              path.add(nums[i]);
+              used[i] = true;
+              backtracking(nums, used);
+              path.remove(path.size() - 1); // 回溯
+              used[i] = false; // 回溯
+          }
+      }
+  }
+  ```
+
+### 9.重新安排行程
+
+#### 题目
+
+- 给你一份航线列表 `tickets` ，其中 `tickets[i] = [fromi, toi]` 表示飞机出发和降落的机场地点。请你对该行程进行重新规划排序。
+
+  所有这些机票都属于一个从 `JFK`（肯尼迪国际机场）出发的先生，所以该行程必须从 `JFK` 开始。如果存在多种有效的行程，请你按字典排序返回最小的行程组合。
+
+  - 例如，行程 `["JFK", "LGA"]` 与 `["JFK", "LGB"]` 相比就更小，排序更靠前。
+
+  假定所有机票至少存在一种合理的行程。且所有的机票 必须都用一次 且 只能用一次。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/03/14/itinerary1-graph.jpg)
+
+  ```
+  输入：tickets = [["MUC","LHR"],["JFK","MUC"],["SFO","SJC"],["LHR","SFO"]]
+  输出：["JFK","MUC","LHR","SFO","SJC"]
+  ```
+
+  **示例 2：**
+
+  ![img](https://assets.leetcode.com/uploads/2021/03/14/itinerary2-graph.jpg)
+
+  ```
+  输入：tickets = [["JFK","SFO"],["JFK","ATL"],["SFO","ATL"],["ATL","JFK"],["ATL","SFO"]]
+  输出：["JFK","ATL","JFK","SFO","ATL","SFO"]
+  解释：另一种有效的行程是 ["JFK","SFO","ATL","JFK","ATL","SFO"] ，但是它字典排序更大更靠后。
+  ```
+
+  **提示：**
+
+  - `1 <= tickets.length <= 300`
+  - `tickets[i].length == 2`
+  - `fromi.length == 3`
+  - `toi.length == 3`
+  - `fromi` 和 `toi` 由大写英文字母组成
+  - `fromi != toi`
+
+#### 思路
+
+- 这道题目有几个难点：
+  1. 一个行程中，如果航班处理不好容易变成一个圈，成为死循环
+  2. 有多种解法，字母序靠前排在前面，让很多同学望而退步，如何该记录映射关系呢 ？
+  3. 使用回溯法（也可以说深搜） 的话，那么终止条件是什么呢？
+  4. 搜索的过程中，如何遍历一个机场所对应的所有机场。
+- 对于死循环，举一个有重复机场的例子：
 
 ## 贪心算法
 
