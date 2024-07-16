@@ -7213,11 +7213,290 @@ class Solution {
 #### 思路
 
 - 这道题目有几个难点：
+
   1. 一个行程中，如果航班处理不好容易变成一个圈，成为死循环
-  2. 有多种解法，字母序靠前排在前面，让很多同学望而退步，如何该记录映射关系呢 ？
-  3. 使用回溯法（也可以说深搜） 的话，那么终止条件是什么呢？
-  4. 搜索的过程中，如何遍历一个机场所对应的所有机场。
+  2. 使用回溯法（也可以说深搜） 的话，那么终止条件是什么呢？
+  3. 如何按字典排序返回最小的行程组合？
+
 - 对于死循环，举一个有重复机场的例子：
+
+  ![332.重新安排行程](https://code-thinking-1253855093.file.myqcloud.com/pics/20201115180537865.png)
+
+  - **如果在解题的过程中没有对集合元素处理好，就会死循环。**可能出现下面的情况：
+
+    ```java
+    ["JFK","NRT","JFK","NRT","JFK","NRT","JFK"......]
+    ```
+
+  - 所以需要定义一个 `used` 数组，来判断机票是否已经使用过。
+
+- 使用回溯法的话，那么终止条件是什么呢？
+
+  - 以题目中的示例 1 为例，输入: [["MUC", "LHR"], ["JFK", "MUC"], ["SFO", "SJC"], ["LHR", "SFO"]] ，这是有 4 个航班，那么只要找出一种行程，行程里的机场个数是 5 就可以了。
+  - 所以终止条件是：我们回溯遍历的过程中，遇到的机场个数，如果达到了（航班数量 +1），那么我们就找到了一个行程，把所有航班串在一起了。
+
+- 如何按字典排序返回最小的行程组合？
+
+  - 直观的想法，对所有的机票，按降落的机场地点进行排序，然后在递归函数的单层逻辑中使用 for 循环即可。
+
+  ```java
+  class Solution {
+      private List<String> res = new ArrayList<>();
+  
+      public List<String> findItinerary(List<List<String>> tickets) {
+          Collections.sort(tickets, (a, b) -> a.get(1).compareTo(b.get(1))); // 来满足字典排序
+          boolean[] used = new boolean[tickets.size()]; // used数组用于判断机票是否使用过
+          res.add("JFK");
+          backtracking(tickets, used);
+          return res;
+      }
+  
+      public boolean backtracking(List<List<String>> tickets, boolean[] used) {
+          if (res.size() == tickets.size() + 1) {
+              return true;
+          }
+          for (int i = 0; i < tickets.size(); i++) {
+              if (!used[i] && tickets.get(i).get(0).equals(res.get(res.size() - 1))) {
+                  res.add(tickets.get(i).get(1));
+                  used[i] = true;
+                  if (backtracking(tickets, used)) {
+                      return true; // 找到了解就不断return true退出递归，而不是往下回溯
+                  };
+                  res.remove(res.size() - 1);
+                  used[i] = false;
+              }
+          }
+          return false;
+      }
+  }
+  ```
+
+  - 结果发现超时了，原因在于使用 sort 方法对机票进行排序时，消耗时间过长。
+
+- 为了减少执行时间，考虑用空间换时间，不使用 `List<List<String>> tickets` 直接进行处理，而是使用 Map 来存储机票信息：
+
+  - `map<出发机场, map<到达机场, 航班次数>>`，注意相同的机票是可能有多张的，比如从 `JFK` 到 `NRT` 的机票有两张这种。
+  - 具体来说，是 `HashMap<出发机场, TreeMap<到达机场, 航班次数>>`，用 `TreeMap` 来满足字典排序。
+
+  ```java
+  class Solution {
+      private LinkedList<String> res = new LinkedList<>();
+      // map<出发机场, map<到达机场, 航班次数>>
+      private Map<String, Map<String, Integer>> map = new HashMap<>();
+  
+      public List<String> findItinerary(List<List<String>> tickets) {
+          // 初始化map
+          for (List<String> t : tickets) {
+              String from = t.get(0);
+              String to = t.get(1);
+              Map<String, Integer> temp;
+              if (map.containsKey(from)) {
+                  temp = map.get(from);
+                  temp.put(to, temp.getOrDefault(to, 0) + 1);
+              } else {
+                  temp = new TreeMap<>(); // 默认升序
+                  temp.put(to, 1);
+                  map.put(from, temp);
+              }
+          }
+          res.add("JFK");
+          backtracking(tickets.size());
+          return res;
+      }
+  
+      public boolean backtracking(int ticketsNum) {
+          if (res.size() == ticketsNum + 1) {
+              return true;
+          }
+          String last = res.peekLast();
+          if (map.containsKey(last)) {
+              Map<String, Integer> temp = map.get(last); // 得到下一个要飞向的机场的集合
+              for (Map.Entry<String, Integer> e : temp.entrySet()) {
+                  String to = e.getKey(); // 通过TreeMap来保证取出的到达机场是按字典排序的
+                  Integer count = e.getValue();
+                  if (count > 0) {
+                      res.add(to);
+                      temp.put(to, count - 1);
+                      if (backtracking(ticketsNum)) {
+                          return true;
+                      }
+                      res.removeLast(); // 回溯
+                      temp.put(to, count); // 回溯，注意这里回溯是将count设置回原来的值，而不是count + 1
+                  }
+              }
+          }
+          return false;
+      }
+  }
+  ```
+
+### 10.N皇后
+
+#### 题目
+
+- 按照国际象棋的规则，皇后可以攻击与之处在同一行或同一列或同一斜线上的棋子。
+
+  **n 皇后问题** 研究的是如何将 `n` 个皇后放置在 `n×n` 的棋盘上，并且使皇后彼此之间不能相互攻击。
+
+  给你一个整数 `n` ，返回所有不同的 **n 皇后问题** 的解决方案。
+
+  每一种解法包含一个不同的 **n 皇后问题** 的棋子放置方案，该方案中 `'Q'` 和 `'.'` 分别代表了皇后和空位。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode.com/uploads/2020/11/13/queens.jpg)
+
+  ```
+  输入：n = 4
+  输出：[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
+  解释：如上图所示，4 皇后问题存在两个不同的解法。
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：n = 1
+  输出：[["Q"]]
+  ```
+
+  **提示：**
+
+  - `1 <= n <= 9`
+
+#### 思路
+
+- N 皇后问题是经典的用回溯算法解决的问题。
+
+- 首先来看一下皇后们的约束条件：
+
+  1. 不能同行
+  2. 不能同列
+  3. 不能同斜线
+
+  确定完约束条件，来看看究竟要怎么去搜索皇后们的位置，其实搜索皇后的位置，可以抽象为一棵树。
+
+  以一个 3 * 3 的棋盘为例，将搜索过程抽象为一棵树，如图：
+
+  ![51.N皇后](https://code-thinking-1253855093.file.myqcloud.com/pics/20210130182532303.jpg)
+
+  从图中，可以看出，**二维矩阵中矩阵的高就是这棵树的高度，矩阵的宽就是树形结构中每一个节点的宽度**。
+
+  那么我们用皇后们的约束条件，来回溯搜索这棵树，**只要搜索到了树的叶子节点，说明就找到了皇后们的合理位置了**。
+
+```java
+class Solution {
+    private List<List<String>> res = new ArrayList<>();
+
+    public List<List<String>> solveNQueens(int n) {
+        char[][] chessboard = new char[n][n];
+        // 初始化棋盘
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                chessboard[i][j] = '.';
+            }
+        }
+        backtracking(n, 0, chessboard);
+        return res;
+    }
+
+    public void backtracking(int n, int row, char[][] chessboard) {
+        if (row == n) {
+            res.add(arrayToList(n, chessboard));
+            return;
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (isValid(n, row, i, chessboard)) {
+                chessboard[row][i] = 'Q';
+                backtracking(n, row + 1, chessboard);
+                chessboard[row][i] = '.'; // 回溯
+            }
+        }
+    }
+
+    // 判断皇后的位置是否可行
+    public boolean isValid(int n, int row, int col, char[][] chessboard) {
+        // 隐含的已经不可能在同一行了
+        // 判断是否在同一列
+        for (int i = 0; i < row; i++) {
+            if (chessboard[i][col] == 'Q') {
+                return false;
+            }
+        }
+        // 判断是否在45度角的斜线上
+        for (int i = row - 1, j = col + 1; i >= 0 && j < n; i--, j++) {
+            if (chessboard[i][j] == 'Q') {
+                return false;
+            }
+        }
+        // 判断是否在135度角的斜线上
+        for (int i = row - 1, j = col - 1; i >= 0 && j >= 0; i--, j--) {
+            if (chessboard[i][j] == 'Q') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public List<String> arrayToList(int n, char[][] chessboard) {
+        List<String> temp = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            temp.add(new String(chessboard[i]));
+        }
+        return temp;
+    }
+}
+```
+
+### 11.解数独
+
+#### 题目
+
+- 编写一个程序，通过填充空格来解决数独问题。
+
+  数独的解法需 **遵循如下规则**：
+
+  1. 数字 `1-9` 在每一行只能出现一次。
+  2. 数字 `1-9` 在每一列只能出现一次。
+  3. 数字 `1-9` 在每一个以粗实线分隔的 `3x3` 宫内只能出现一次。（请参考示例图）
+
+  数独部分空格内已填入了数字，空白格用 `'.'` 表示。
+
+  **示例 1：**
+
+  ![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2021/04/12/250px-sudoku-by-l2g-20050714svg.png)
+
+  ```
+  输入：board = [["5","3",".",".","7",".",".",".","."],["6",".",".","1","9","5",".",".","."],[".","9","8",".",".",".",".","6","."],["8",".",".",".","6",".",".",".","3"],["4",".",".","8",".","3",".",".","1"],["7",".",".",".","2",".",".",".","6"],[".","6",".",".",".",".","2","8","."],[".",".",".","4","1","9",".",".","5"],[".",".",".",".","8",".",".","7","9"]]
+  输出：[["5","3","4","6","7","8","9","1","2"],["6","7","2","1","9","5","3","4","8"],["1","9","8","3","4","2","5","6","7"],["8","5","9","7","6","1","4","2","3"],["4","2","6","8","5","3","7","9","1"],["7","1","3","9","2","4","8","5","6"],["9","6","1","5","3","7","2","8","4"],["2","8","7","4","1","9","6","3","5"],["3","4","5","2","8","6","1","7","9"]]
+  解释：输入的数独如上图所示，唯一有效的解决方案如下所示：
+  ```
+
+  **提示：**
+
+  - `board.length == 9`
+  - `board[i].length == 9`
+  - `board[i][j]` 是一位数字或者 `'.'`
+  - 题目数据 **保证** 输入数独仅有一个解
+
+#### 思路
+
+- 棋盘搜索问题可以使用回溯法暴力搜索，只不过这次我们要做的是**二维递归**。
+
+  - 我们之前做的题目例如：[77.组合（组合问题） (opens new window)](https://programmercarl.com/0077.组合.html)，[131.分割回文串（分割问题） (opens new window)](https://programmercarl.com/0131.分割回文串.html)，[78.子集（子集问题） (opens new window)](https://programmercarl.com/0078.子集.html)，[46.全排列（排列问题） (opens new window)](https://programmercarl.com/0046.全排列.html)，以及[51.N皇后（N皇后问题） (opens new window)](https://programmercarl.com/0051.N皇后.html)，其实这些题目都是一维递归。
+
+  本题就不一样了，**本题中棋盘的每一个位置都要放一个数字（而N皇后是一行只放一个皇后），并检查数字是否合法，解数独的树形结构要比N皇后更宽更深**。如图所示：
+
+  ![37.解数独](https://code-thinking-1253855093.file.myqcloud.com/pics/2020111720451790-20230310131816104.png)
+
+- 回溯三部曲：
+
+  1. **确定回溯函数及参数**：
+     - 本题递归函数的返回值需要是 boolean 类型，为什么呢？
+       - 因为解数独找到一个符合的条件（就在树的叶子节点上）就立刻就返回，相当于找从根节点到叶子节点一条唯一路径，所以需要使用 boolean 返回值。如果返回为 true 就不需要再执行后续的回溯代码了。
+  2. **确定递归终止条件**
+     - 本题递归不用终止条件，解数独是要遍历整个树形结构寻找可能的叶子节点就立刻返回。
+  3. **确定单层递归逻辑**
 
 ## 贪心算法
 
