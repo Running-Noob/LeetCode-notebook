@@ -10515,7 +10515,7 @@ class Solution {
 
   输出q行,每行代表一次查询的结果.
 
-  示例1
+- 示例1
 
   输入：
 
@@ -10638,7 +10638,7 @@ class Solution {
 
 - 这题就体现出**把数组下标 i 和第 i+1 项对应起来**的重要性，否则可能就容易搞乱。
 
-### 3.除自身以外数组的乘积
+### 3.除自身以外数组的乘积(前缀积+后缀积)
 
 #### 题目
 
@@ -10713,7 +10713,7 @@ class Solution {
 
 - **注意：只需要记住前缀积的公式是 `dp[right] / dp[left - 1]`，那么后缀积的公式就是 `dp[nums.length - (left - 1)] / dp[nums.length - right]`**，前提是后缀积的数组在初始化时也是从前向后初始化。
 
-### 4.和为 k 的子数组
+### 4.★和为 k 的子数组
 
 #### 题目
 
@@ -10805,7 +10805,7 @@ class Solution {
   - 对于一开始的情况，下标 0 之前没有元素，可以认为前缀和为 0，个数为 1 个，因此 `preSumFreq.put(0, 1);`，这一点是必要且合理的。
     - 具体的例子是：`nums = [3,...], k = 3` 
 
-### 5.和可被 K 整除的子数组
+### 4.2 和可被 K 整除的子数组
 
 #### 题目
 
@@ -10838,7 +10838,307 @@ class Solution {
 
 #### 思路
 
-- 
+- 会发现这题和 `4.和为 k 的子数组` 很像，其实是同一个套路，但是要稍微变通一下。
+
+- **同余定理**：如果 (a - b) % n == 0 ，那么我们可以得到⼀个结论： a % n == b % n 。用文字叙述就是，如果两个数相减的差能被 n 整除，那么这两个数对 n 取模的结果相同。
+
+  - 设 i 为数组中的任意位置，用 dp[i + 1] 表示 [0, i] 区间内所有元素的和。
+
+  - 想知道有多少个「以 i 为结尾的可被 k 整除的子数组」，就要找到有多少个起始位置为 x1,x2, x3... 使得 [x, i] 区间内的所有元素的和可被 k 整除。
+
+  - **设 [0, x - 1] 区间内所有元素之和等于 a ， [0, i] 区间内所有元素的和等于 b ，可得 (b - a) % k == 0** 
+
+    - 根据同余定理，上式转变为：**b % k == a % k**
+
+    于是问题就变成：
+
+    - **找到在 [0, i - 1] 区间内，有多少前缀和的余数等于 dp[i + 1] % k 的即可**。
+
+    这样，这个问题就和 `4.和为 k 的子数组` 几乎一模一样了。
+
+
+```java
+class Solution {
+    public int subarraysDivByK(int[] nums, int k) {
+        int res = 0;
+        int sum = 0;
+        // Map<前缀和 % k, 前缀和 % k 的值相同的个数>
+        Map<Integer, Integer> preModFreq = new HashMap<>();
+        preModFreq.put(0, 1);
+        for (int i = 0; i < nums.length; i++) {
+            sum += nums[i];
+            int mod = (sum % k + k) % k; // 对负值进行修正
+            if (preModFreq.containsKey(mod)) {
+                res += preModFreq.get(mod);
+            }
+            preModFreq.put(mod, preModFreq.getOrDefault(mod, 0) + 1);
+        }
+        return res;
+    }
+}
+```
+
+- 有一个需要注意的点是：负数取模的结果需要被修正，例如 - 1 % 2，Java 做取模运算的时候，a % b = a - a / b * b，所以 - 1 % 2 = -1 - (-1 / 2 * 2) = -1，在本题需要将负数修正为正数，所以存入 map 中的 key 不是 sum % k，而是 (sum % k + k) % k。
+
+- 当 k 的值不大的时候，我们甚至还能进一步对上述的代码进行优化，用数组代替哈希表，能进一步优化执行时间：
+
+  ```java
+  class Solution {
+      public int subarraysDivByK(int[] nums, int k) {
+          int res = 0;
+          int sum = 0;
+          int[] preModFreq = new int[k];
+          preModFreq[0] = 1;
+          for (int i = 0; i < nums.length; i++) {
+              sum += nums[i];
+              int mod = (sum % k + k) % k; // 对负值进行修正
+              res += preModFreq[mod];
+              preModFreq[mod]++;
+          }
+          return res;
+      }
+  }
+  ```
+
+### 4.3 连续数组
+
+#### 题目
+
+- 给定一个二进制数组 `nums` , 找到含有相同数量的 `0` 和 `1` 的最长连续子数组，并返回该子数组的长度。
+
+  **示例 1:**
+
+  ```
+  输入: nums = [0,1]
+  输出: 2
+  说明: [0, 1] 是具有相同数量 0 和 1 的最长连续子数组。
+  ```
+
+  **示例 2:**
+
+  ```
+  输入: nums = [0,1,0]
+  输出: 2
+  说明: [0, 1] (或 [1, 0]) 是具有相同数量0和1的最长连续子数组。
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 10^5`
+  - `nums[i]` 不是 `0` 就是 `1`
+
+#### 思路
+
+- 稍微转化⼀下题目，就会变成我们熟悉的题：
+
+  - 由于「0 和 1 的数量相同」等价于「1 的数量减去 0 的数量等于 0」，我们可以**将数组中的 0 视作 −1，则原问题转换成「求最长的连续子数组，其元素和为 0」**。
+  - 那这题就和 `4.和为 k 的子数组` 完全相同了，只不过这题为 “`和为 0 的子数组`”，而且 `4.和为 k 的子数组` 求的是和为 k 的子数组的个数，而本题求的是和为 0 的最大连续子数组的长度。
+
+- 设 i 为数组中的任意位置，用 dp[i + 1] 表示 [0, i] 区间内所有元素的和。
+
+  - 想知道最大的「以 i 为结尾的和为 0 的子数组」，就要从左往右找到第⼀个 x1 使得 [x1, i] 区间内的所有元素的和为 0 。那么 [0, x1 - 1] 区间内的和是不是就是 dp[i + 1] 了。于是问题就变成：
+    - 找到在 [0, i - 1] 区间内，第⼀次出现 dp[i + 1] 的位置。
+
+  我们不用真的初始化⼀个前缀和数组，因为我们只关心在 i 位置之前，第⼀个前缀和等于 dp[i + 1] 的位置。因此，我们仅需用⼀个哈希表，⼀边求当前位置的前缀和，⼀边记录第⼀次出现该前缀和的位置。
+
+```java
+class Solution {
+    public int findMaxLength(int[] nums) {
+        int res = 0;
+        int sum = 0;
+        // Map<前缀和, 相同的前缀和第一次出现的位置>
+        Map<Integer, Integer> preSumMap = new HashMap<>();
+        // 针对的是这种例子: [0,1,...], 此时 i = 1, sum = 0, 为了得到长度为 2, 
+        // 就需要 i - preSumMap.get(sum) = 1 - preSumMap.get(0) = 2, 则 preSumMap.get(0) = -1
+        preSumMap.put(0, -1);
+        for (int i = 0; i < nums.length; i++) {
+            sum += (nums[i] == 0 ? -1 : 1);
+            if (preSumMap.containsKey(sum)) {
+                // 如果之前存在前缀和为sum, 说明从那之后的连续子数组的和为0
+                res = Math.max(res, i - preSumMap.get(sum));
+            } else {
+                // 记录该前缀和第一次出现的位置
+                preSumMap.put(sum, i);
+            }
+        }
+        return res;
+    }
+}
+```
+
+- 注意本题和 `4.和为 k 的子数组` 的区别：
+  - `4.和为 k 的子数组` 中的 Map 是 `Map<前缀和, 相同的前缀和的个数>`
+  - 本题中的 Map 是 `Map<前缀和, 相同的前缀和第一次出现的位置>` 
+
+### 5.【模板】二维前缀和
+
+#### 题目
+
+- 描述
+
+  给你一个 n 行 m 列的矩阵 A ，下标从 1 开始。
+
+  接下来有 q 次查询，每次查询输入 4 个参数 x1 , y1 , x2 , y2
+
+  请输出以 (x1, y1) 为左上角 , (x2,y2) 为右下角的子矩阵的和
+
+- 输入描述：
+
+  第一行包含三个整数n,m,q.
+
+  接下来n行，每行m个整数，代表矩阵的元素
+
+  接下来q行，每行4个整数x1, y1, x2, y2，分别代表这次查询的参数
+
+  1≤𝑛,𝑚≤1000
+  1≤𝑞≤10^5
+  −10^9≤𝑎\[𝑖][𝑗]≤10^9
+  1≤𝑥1≤𝑥2≤𝑛
+  1≤𝑦1≤𝑦2≤𝑚
+
+- 输出描述：
+
+  输出q行，每行表示查询结果。
+
+- 示例1
+
+  输入：
+
+  ```
+  3 4 3
+  1 2 3 4
+  3 2 1 0
+  1 5 7 8
+  1 1 2 2
+  1 1 3 3
+  1 2 3 4
+  ```
+
+  输出：
+
+  ```
+  8
+  25
+  32
+  ```
+
+  备注：读入数据可能很大，请注意读写时间。
+
+#### 思路
+
+- 和一维前缀和的原理类似，只不过二维前缀和求的是一个矩阵中所有元素的和。
+
+  <img src="https://img-blog.csdnimg.cn/direct/71e47ac7fc57403f8d413c6f1ccf6bed.png" alt="img" style="zoom: 67%;" />
+
+  - 例如：对与 x = 4，y = 3 这么一组输入，就是将原矩阵序列中蓝色区域的元素相加，得到的结果便是前缀和矩阵 dp 中 dp\[ 4 ][ 3 ] 的值。
+
+  例如下图，我们要求蓝色矩阵中所有元素的和。
+
+  ![img](https://img-blog.csdnimg.cn/direct/6f1e0660d953424d8a46bc2e3d605891.png)
+
+- 那么我们应该怎么得到这个前缀和矩阵？
+
+  - 同理利用递推关系求就可以了：`dp[i][j] = dp[i - 1][j] + dp[i][j - 1] - dp[i - 1][j - 1] + nums[i - 1][j - 1];`。
+
+```java
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        int m = in.nextInt();
+        int q = in.nextInt();
+        int[][] nums = new int[n][m]; // 其实完全可以不用定义nums数组，直接在输入的过程中就可以把前缀和矩阵给填充好
+        long[][] dp = new long[n + 1][m + 1];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                nums[i][j] = in.nextInt();
+            }
+        }
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= m; j++) {
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1] - dp[i - 1][j - 1] + nums[i - 1][j - 1];
+            }
+        }
+        while (q > 0) {
+            int x1 = in.nextInt();
+            int y1 = in.nextInt();
+            int x2 = in.nextInt();
+            int y2 = in.nextInt();
+            long result = dp[x2][y2] - dp[x1 - 1][y2] - dp[x2][y1 - 1] + dp[x1 - 1][y1 - 1];
+            System.out.println(result);
+            q--;
+        }
+    }
+}
+```
+
+### 5.2 矩阵区域和
+
+#### 题目
+
+- 给你一个 `m x n` 的矩阵 `mat` 和一个整数 `k` ，请你返回一个矩阵 `answer` ，其中每个 `answer[i][j]` 是所有满足下述条件的元素 `mat[r][c]` 的和： 
+
+  - `i - k <= r <= i + k, `
+  - `j - k <= c <= j + k` 且
+  - `(r, c)` 在矩阵内。
+
+  **示例 1：**
+
+  ```
+  输入：mat = [[1,2,3],[4,5,6],[7,8,9]], k = 1
+  输出：[[12,21,16],[27,45,33],[24,39,28]]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：mat = [[1,2,3],[4,5,6],[7,8,9]], k = 2
+  输出：[[45,45,45],[45,45,45],[45,45,45]]
+  ```
+
+  **提示：**
+
+  - `m == mat.length`
+  - `n == mat[i].length`
+  - `1 <= m, n, k <= 100`
+  - `1 <= mat[i][j] <= 100`
+
+#### 思路
+
+- ⼆维前缀和的简单应用题，关键就是我们在填写结果矩阵的时候，要找到原矩阵对应区域的「左上角」以及「右下角」的坐标。
+
+  - 左上角坐标： x1 = i - k ， y1 = j - k ，但是由于会「超过矩阵」的范围，因此需要进行修正。
+  - 右下角坐标： x2 = i + k ， y2 = j + k ，但是由于会「超过矩阵」的范围，因此需要进行修正。
+
+  然后将求出来的坐标代⼊到「二维前缀和矩阵」的计算公式上即可。
+
+  ```java
+  class Solution {
+      public int[][] matrixBlockSum(int[][] mat, int k) {
+          int m = mat.length;
+          int n = mat[0].length;
+          int[][] dp = new int[m + 1][n + 1]; // 二维前缀和矩阵
+          int[][] res = new int[m][n];
+          for (int i = 1; i <= m; i++) {
+              for (int j = 1; j <= n; j++) {
+                  dp[i][j] = dp[i - 1][j] + dp[i][j - 1] - dp[i - 1][j - 1] + mat[i - 1][j - 1];
+              }
+          }
+          for (int i = 1; i <= m; i++) {
+              int x1 = i - k < 1 ? 1 : i - k; // 边界判断
+              int x2 = i + k > m ? m : i + k; // 边界判断
+              for (int j = 1; j <= n; j++) {
+                  int y1 = j - k < 1 ? 1 : j - k; // 边界判断
+                  int y2 = j + k > n ? n : j + k; // 边界判断
+                  res[i - 1][j - 1] = dp[x2][y2] - dp[x1 - 1][y2] - dp[x2][y1 - 1] + dp[x1 - 1][y1 - 1];
+              }
+          }
+          return res;
+      }
+  }
+  ```
 
 ## 图论
 
