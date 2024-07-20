@@ -498,6 +498,92 @@
 
 ![](img/数组/数组总结.png)
 
+### 6.数组子序列的排列
+
+#### 题目
+
+- 题目描述
+
+  讨厌鬼有一个长度为 n （1 < n < 10^5）的数组，他想知道这个数组有多少个子序列是一个排列? 
+
+  子序列的定义: 数组删除若干个元素(也可以不删)后得到的新数组。 
+
+  排列的定义: 长度为 m 的数组，1 到 m 每个元素都出现过，且恰好出现 1 次。
+
+- 输入描述
+
+  第一行输入一个整数 n。 
+
+  第二行输入 n 个正整数，a1, a2, ..., an。（1 <= ai <= 10^9）
+
+- 输出描述
+
+  一行一个整数，表示有多少个子序列是一个排列。由于答案过大，请将答案对 10^ 9 + 7 取模后输出
+
+- 输入示例
+
+  ```
+  6
+  1 1 5 2 3 4
+  ```
+
+  输出示例
+
+  ```
+  10
+  ```
+
+  提示信息
+
+  符合要求的子序列有：{1}，{1}，{1，2}，{1，2}，{1，2，3}，{1，2，3}，{1，2，3，4}，{1，2，3，4}，{1，5，2，3，4}，{1，5，2，3，4}共 10 个
+
+#### 思路
+
+- 其实仔细考虑本题会发现，我们不需要真的去模拟删除元素，然后再去判断剩余数组是否是排列。我们只需要记录每种数字出现的次数，然后就可以通过乘法运算得到结果了，我们可以定义一个 cnt[i] 代表 i 的个数，sum[i] 代表 [1..i] 的个数。
+
+  具体而言，举个例子：
+
+  - 1 1 2 2 3 3
+    - 1 有两个，cnt[1] = 2，sum[1] = 2
+    - 2 有两个，cnt[2] = 2，sum[2] = cnt[2] * sum[1] = 4，即 [1,2] 的排列就是 cnt[2] * sum[1]，**就是 2 的个数乘前面 1 的排列的个数**
+    - 3 有两个，cnt[3] = 2，sum[3] = cnt[3] * sum[2] = 8，也就是 3 有两个，然后 [1,2] 的排列有四种，那么 [1,2,3] 的排列就有 8 种
+
+  由于本题数据范围 1 < n < 10^5，1 <= ai <= 10^9，所以相比于定义数组，定义哈希表更好一点。
+
+  ```java
+  import java.util.Scanner;
+  import java.util.Map;
+  import java.util.HashMap;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          // Map<数值, 相同的数值的个数>
+          Map<Integer, Integer> map = new HashMap<>();
+          long res = 0;
+          long cur = 1; // 用于代替sum数组
+          int mod = (int)1e9 + 7;
+          for (int i = 0; i < n; i++) {
+              int num = in.nextInt();
+              map.put(num, map.getOrDefault(num, 0) + 1); // 存储每种数字出现的次数
+          }
+          // 长度为n的数组, 如果能得到排列, 最大的值最多为n, 所以看map中的数到n就行了
+          for (int i = 1; i <= n; i++) {
+              if (map.containsKey(i)) {
+                  cur = (cur * map.get(i)) % mod;
+                  res = (res + cur) % mod;
+              } else {
+                  break;
+              }
+          }
+          System.out.println(res);
+      }
+  }
+  ```
+
+  - 有个坑的点是，“由于答案过大，请将答案对 10^ 9 + 7 取模后输出”，所以**在每次 for 循环的过程中，都要对 mod 进行取余**，同时，**res 和 cur 要定义成 long 类型，因为需要避免两个 int 值相乘或者相加超过 int 范围**。
+
 ## 链表✔
 
 ### 链表理论基础
@@ -2888,6 +2974,99 @@ public class Solution {
 - 字符串类型的题目，往往想法比较简单，但是实现起来并不容易，复杂的字符串题目非常考验对代码的掌控能力。
   - 双指针法是字符串处理的常客。
   - KMP 算法是字符串查找最重要的算法，**要知道怎么获取 next 数组，并且如何使用它**。
+
+### 5.字典序最小的 01 字符串
+
+#### 题目
+
+- 题目描述
+
+  小红有一个 01 字符串，她可以进行最多 k 次提作，每次操作可以交换相邻的两个字符，问可以得到的字典序最小的字符串是什么。
+
+- 输入描述
+
+  第一行包含两个整数，n（1 < n < 10^5）和 k（1 < k < 10^9），表示字符串的长度和可以进行的操作次数。
+
+  接下来一行一个长度为 n 的 01 字符串。
+
+- 输出描述
+
+  输出一个长度为 n 的字符串，表示字典序最小的字符串。
+
+- 输入示例
+
+  ```
+  5 2
+  01010
+  ```
+
+  输出示例
+
+  ```
+  00101
+  ```
+
+#### 思路
+
+- 可以用双指针进行求解，**将第一个出现在 1 后面的 0 与最前面的 1 进行交换**。
+
+  - 如果交换次数小于 k，则直接进行交换
+  - 如果交换次数大于 k，则需要保证交换次数为 k
+
+  ```java
+  import java.util.Scanner;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int k = in.nextInt();
+          in.nextLine();
+          String s = in.nextLine();
+          char[] charArray = s.toCharArray();
+          while (k > 0) {
+              int firstOneIndex = -1; // 第一个'1'的下标
+              int firstZeroAfterOneIndex = -1; // 在'1'之后的第一个'0'的下标
+              for (int i = 0; i < n; i++) {
+                  if (charArray[i] == '1') {
+                      firstOneIndex = i;
+                      break;
+                  }
+              }
+              if (firstOneIndex == -1) {
+                  System.out.println(new String(charArray));
+                  return;
+              }
+              for (int i = firstOneIndex + 1; i < n; i++) {
+                  if (charArray[i] == '0') {
+                      firstZeroAfterOneIndex = i;
+                      break;
+                  }
+              }
+              if (firstZeroAfterOneIndex == -1) {
+                  System.out.println(new String(charArray));
+                  return;
+              }
+              // 第一个'1'的下标和在'1'之后的第一个'0'的下标的区间范围
+              int range = firstZeroAfterOneIndex - firstOneIndex;
+              if (k >= range) {
+                  swap(charArray, firstOneIndex, firstZeroAfterOneIndex);
+                  k -= range;
+              } else {
+                  swap(charArray, firstZeroAfterOneIndex - k, firstZeroAfterOneIndex);
+                  break;
+              }
+          }
+          System.out.println(new String(charArray));
+      }
+      
+      public static void swap(char[] charArray, int i, int j) {
+          char temp = charArray[i];
+          charArray[i] = charArray[j];
+          charArray[j] = temp;
+      }
+  }
+  ```
 
 ## 栈与队列✔
 
