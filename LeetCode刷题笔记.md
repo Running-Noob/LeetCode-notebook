@@ -11412,106 +11412,229 @@ public class Main {
   }
   ```
 
-### 1.所有可能的路径
+### 1.所有可达路径
 
 #### 题目
 
-- 给你一个有 `n` 个结点的 **有向无环图（DAG）**，请你找出所有从结点 `0` 到结点 `n-1` 的路径并输出（**不要求按特定顺序**）
+- 题目描述
 
-   `graph[i]` 是一个从结点 `i` 可以访问的所有结点的列表（即从结点 `i` 到结点 `graph[i][j]`存在一条有向边）。
+  给定一个有 n 个节点的有向无环图，节点编号从 1 到 n。请编写一个函数，找出并返回所有从节点 1 到节点 n 的路径。每条路径应以节点编号的列表形式表示。
 
-  **示例 1：**
+- 输入描述
 
-  ![img](https://assets.leetcode.com/uploads/2020/09/28/all_1.jpg)
+  第一行包含两个整数 N，M，表示图中拥有 N 个节点，M 条边
+
+  后续 M 行，每行包含两个整数 s 和 t，表示图中的 s 节点与 t 节点中有一条路径
+
+  输出描述
+
+  输出所有的可达路径，路径中所有节点之间空格隔开，每条路径独占一行，存在多条路径，路径输出的顺序可任意。如果不存在任何一条路径，则输出 -1。
+
+  **注意输出的序列中，最后一个节点后面没有空格！** 例如正确的答案是 `1 3 5`, 而不是 `1 3 5 `， 5后面没有空格！
+
+- 输入示例
 
   ```
-  输入：graph = [[1,2],[3],[3],[]]
-  输出：[[0,1,3],[0,2,3]]
-  解释：有两条路径 0 -> 1 -> 3 和 0 -> 2 -> 3
+  5 5
+  1 3
+  3 5
+  1 2
+  2 4
+  4 5
   ```
 
-  **示例 2：**
-
-  ![img](https://assets.leetcode.com/uploads/2020/09/28/all_2.jpg)
+  输出示例
 
   ```
-  输入：graph = [[4,3,1],[3,2,4],[3],[4],[]]
-  输出：[[0,4],[0,3,4],[0,1,3,4],[0,1,2,3,4],[0,1,4]]
+  1 3 5
+  1 2 4 5
   ```
 
-  **提示：**
+- 提示信息
 
-  - `n == graph.length`
-  - `2 <= n <= 15`
-  - `0 <= graph[i][j] < n`
-  - `graph[i][j] != i`（即不存在自环）
-  - `graph[i]` 中的所有元素 **互不相同**
-  - 保证输入为 **有向无环图（DAG）**
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240411/20240411102415_35139.png)
+
+  **用例解释：**
+
+  有五个节点，其中的从 1 到达 5 的路径有两个，分别是 1 -> 3 -> 5 和 1 -> 2 -> 4 -> 5。
+
+  因为拥有多条路径，所以输出结果为：
+
+  1 3 5
+  1 2 4 5
+
+  或
+
+  1 2 4 5
+  1 3 5
+  都算正确。
+
+  **数据范围：**
+
+  - 图中不存在自环
+  - 图中不存在平行边
+  - 1 <= N <= 100
+  - 1 <= M <= 500
 
 #### 思路
 
-- 使用深搜三部曲来分析题目：
+- 在 ACM 模式下，图的存储的实现代码同样重要，本题将分别用 邻接矩阵 和 邻接表 的方式实现图的存储。
+
+  - **邻接矩阵**使用**二维数组**来表示图结构，邻接矩阵是从节点的角度来表示图的，有多少节点就申请多大的二维数组。
+    - 在 Java 中可以使用 `int[][]` 数组来表示
+
+  - **邻接表**使用 **数组 + 链表** 的方式来表示图结构，邻接表是从边的数量来表示图的，有多少边才会申请对应大小的链表。
+    - 在 Java 中可以使用 `List<List<Integer>>` 来表示，也可以使用 `Map<Integer, List<Integer>>` 来表示
+
+- 本题是深度优先搜索的基础题目，使用深搜三部曲来分析题目：
 
   1. **确认递归函数，参数**：
 
-     - 首先我们 dfs 函数一定要存一个图，用来遍历的，还要存一个目前我们遍历的结点，定义为 x。至于单一路径，和路径集合则可以放在全局变量，那么代码是这样的：
+     - 首先我们 dfs 函数一定要存一个图，用来遍历的。还要存一个我们目前遍历的结点，定义为 cur。还需要存一个 n，表示终点，我们遍历的时候，需要根据 cur 是否等于 n 来判断是否找到了终点。
+
+       至于单一路径，和路径集合则可以放在全局变量，那么代码是这样的：
 
      ```java
-     List<List<Integer>> result; // 收集符合条件的路径
-     List<Integer> path; // 0结点到终点的路径
-     // node：目前遍历的结点
-     // graph：存当前的图
-     void dfs (int[][] graph, int node) 
+     private static List<Integer> path = new ArrayList<>(); // 第一个结点到终点的路径
+     private static List<List<Integer>> res = new ArrayList<>(); // 收集符合条件的路径
+     public static void dfs(int[][] graph, int n, int cur)
      ```
 
   2. **确认终止条件**：
 
-     - 什么时候我们就找到一条路径了？-> 当目前遍历的结点为最后一个结点的时候，就找到了一条从出发点到终止点的路径。
-     - 当前遍历的结点，我们定义为 node，最后一点结点，就是 `graph.size() - 1`（因为题目描述是找出所有从结点 0 到结点 n-1 的路径并输出）。所以当 node 等于 `graph.size() - 1` 的时候就找到一条有效路径。 代码如下：
+     - 什么时候我们就找到一条路径了？-> 当目前遍历的结点为最后一个结点的时候，cur == n，就找到了一条从出发点到终止点的路径。
 
      ```java
-     // 要求从结点 0 到结点 n-1 的路径并输出，所以是 graph.size() - 1
-     if (node == graph.size() - 1) { // 找到符合条件的一条路径
-         result.add(new ArrayList<>(path)); // 收集有效路径
+     if (cur == n) {
+         res.add(new ArrayList<>(path));
          return;
      }
      ```
 
   3. **处理目前搜索结点出发的路径**：
 
-     - 接下来是走当前遍历结点 node 的下一个结点。
-     - 首先是要找到 node 结点连接了哪些结点，然后就是将选中的 node 所连接的结点加入到单一路径中来，最后就是回溯的过程，撤销本次添加结点的操作。代码如下：
+     - 接下来是走当前遍历结点 cur 的下一个结点。
+     - 首先是要找到 cur 结点连接了哪些结点，然后就是将 cur 所连接的结点加入到单一路径中来，最后就是回溯的过程，撤销本次添加结点的操作。代码如下：
 
      ```java
-     int[] array = graph[node];
-     for (int i = 0; i < array.length; i++) { // 遍历结点n链接的所有结点
-         path.add(graph[node][i]); // 遍历到的结点加入到路径中来
-         dfs(graph, graph[node][i]); // 进入下一层递归
-         path.remove(path.size() - 1); // 回溯，撤销本结点
+     for (int i = 1; i <= n; i++) {
+         if (graph[cur][i] == 1) { // 遍历结点 cur 链接的所有结点
+             graph[cur][i] = 0;
+             path.add(i);
+             dfs(graph, n, i);
+             path.remove(path.size() - 1); // 回溯
+             graph[cur][i] = 1; // 回溯
+         }
      }
      ```
 
-  最后整体代码如下：
+- **邻接矩阵**的整体代码如下：
 
   ```java
-  class Solution {
-      private List<List<Integer>> result = new ArrayList<>();
-      private List<Integer> path = new ArrayList<>();
-      public List<List<Integer>> allPathsSourceTarget(int[][] graph) {
-          path.add(0);
-          dfs(graph, 0);
-          return result;        
-      }
+  import java.util.Scanner;
+  import java.util.List;
+  import java.util.ArrayList;
   
-      public void dfs(int[][] graph, int node) {
-          if (node == graph.length - 1) {
-              result.add(new ArrayList<>(path));
+  public class Main {
+      private static List<Integer> path = new ArrayList<>(); // 第一个结点到终点的路径
+      private static List<List<Integer>> res = new ArrayList<>(); // 收集符合条件的路径
+      
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          // 邻接矩阵表示图
+          int[][] graph = new int[n + 1][n + 1];
+          for (int i = 0; i < m; i++) {
+              int s = in.nextInt();
+              int t = in.nextInt();
+              graph[s][t] = 1;
+          }
+          path.add(1);
+          dfs(graph, n, 1);
+          if (res.isEmpty()) { // 排除特殊情况
+              System.out.println(-1);
               return;
           }
-          int[] array = graph[node];
-          for (int i = 0; i < array.length; i++) {
-              path.add(array[i]);
-              dfs(graph, array[i]);
+          for (List<Integer> path : res) {
+              StringBuilder sb = new StringBuilder();
+              for (Integer i : path) {
+                  sb.append(i);
+                  sb.append(" ");
+              }
+              sb.deleteCharAt(sb.length() - 1);
+              System.out.println(sb.toString());
+          }
+      }
+      
+      public static void dfs(int[][] graph, int n, int cur) {
+          if (cur == n) {
+              res.add(new ArrayList<>(path));
+              return;
+          }
+          for (int i = 1; i <= n; i++) {
+              if (graph[cur][i] == 1) { // 遍历结点 cur 链接的所有结点
+                  path.add(i);
+                  dfs(graph, n, i);
+                  path.remove(path.size() - 1); // 回溯
+              }
+          }
+      }
+  }
+  ```
+
+- **邻接表**的整体代码如下：
+
+  ```java
+  import java.util.Scanner;
+  import java.util.List;
+  import java.util.ArrayList;
+  
+  public class Main {
+      private static List<Integer> path = new ArrayList<>(); // 第一个结点到终点的路径
+      private static List<List<Integer>> res = new ArrayList<>(); // 收集符合条件的路径
+      
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          // 邻接表表示图
+          List<List<Integer>> graph = new ArrayList<>(n + 1);
+          // 初始化邻接表
+          for (int i = 0; i <= n; i++) {
+              graph.add(new ArrayList<>());
+          }
+          for (int i = 0; i < m; i++) {
+              int s = in.nextInt();
+              int t = in.nextInt();
+              graph.get(s).add(t);
+          }
+          path.add(1);
+          dfs(graph, n, 1);
+          if (res.isEmpty()) { // 排除特殊情况
+              System.out.println(-1);
+              return;
+          }
+          for (List<Integer> path : res) {
+              StringBuilder sb = new StringBuilder();
+              for (Integer i : path) {
+                  sb.append(i);
+                  sb.append(" ");
+              }
+              sb.deleteCharAt(sb.length() - 1);
+              System.out.println(sb.toString());
+          }
+      }
+      
+      public static void dfs(List<List<Integer>> graph, int n, int cur) {
+          if (cur == n) {
+              res.add(new ArrayList<>(path));
+              return;
+          }
+          List<Integer> nodes = graph.get(cur);
+          for (Integer node : nodes) {
+              path.add(node);
+              dfs(graph, n, node);
               path.remove(path.size() - 1); // 回溯
           }
       }
@@ -11522,178 +11645,145 @@ public class Main {
 
 #### 题目
 
-- 给你一个由 `'1'`（陆地）和 `'0'`（水）组成的的二维网格，请你计算网格中岛屿的数量。
+- 题目描述
 
-  岛屿总是被水包围，并且每座岛屿只能由水平方向和/或竖直方向上相邻的陆地连接形成。
+  给定一个由 1（陆地）和 0（水）组成的矩阵，你需要计算岛屿的数量。岛屿由水平方向或垂直方向上相邻的陆地连接而成，并且四周都是水域。你可以假设矩阵外均被水包围。
 
-  此外，你可以假设该网格的四条边均被水包围。
+- 输入描述
 
-  **示例 1：**
+  第一行包含两个整数 N, M，表示矩阵的行数和列数。
 
-  ```
-  输入：grid = [
-    ["1","1","1","1","0"],
-    ["1","1","0","1","0"],
-    ["1","1","0","0","0"],
-    ["0","0","0","0","0"]
-  ]
-  输出：1
-  ```
+  后续 N 行，每行包含 M 个数字，数字为 1 或者 0。
 
-  **示例 2：**
+  输出描述
+
+  输出一个整数，表示岛屿的数量。如果不存在岛屿，则输出 0。
+
+- 输入示例
 
   ```
-  输入：grid = [
-    ["1","1","0","0","0"],
-    ["1","1","0","0","0"],
-    ["0","0","1","0","0"],
-    ["0","0","0","1","1"]
-  ]
-  输出：3
+  4 5
+  1 1 0 0 0
+  1 1 0 0 0
+  0 0 1 0 0
+  0 0 0 1 1
   ```
 
-  **提示：**
+  输出示例
 
-  - `m == grid.length`
-  - `n == grid[i].length`
-  - `1 <= m, n <= 300`
-  - `grid[i][j]` 的值为 `'0'` 或 `'1'`
+  ```
+  3
+  ```
+
+  提示信息
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240411/20240411153209_67737.png)
+
+  根据测试案例中所展示，岛屿数量共有 3 个，所以输出 3。
+
+  **数据范围：**
+
+  1 <= N, M <= 50
 
 #### 思路
 
 - 注意题目中每座岛屿只能由**水平方向和/或竖直方向上**相邻的陆地连接形成。
 
-- 也就是说斜角度链接是不算了， 例如示例二，是三个岛屿，如图：
+- 也就是说斜角度链接是不算了， 例如示例，是三个岛屿，如图：
 
-  ![图一](https://code-thinking-1253855093.file.myqcloud.com/pics/20220726094200.png)
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240411/20240411153209_67737.png)
 
-  这道题题目是 DFS，BFS，并查集，基础题目。
+  这道题是 DFS，BFS，并查集的基础题目。
 
-  本题思路，是用遇到一个没有遍历过的结点陆地，计数器就加一，然后把该结点陆地所能遍历到的陆地都标记上。
+  本题思路，是每遇到一个没有遍历过的结点陆地，计数器就加一，然后把该结点陆地所能遍历到的陆地都标记上。在遇到标记过的陆地结点和海洋结点的时候直接跳过。 这样计数器就是最终岛屿的数量。
 
-  在遇到标记过的陆地结点和海洋结点的时候直接跳过。 这样计数器就是最终岛屿的数量。
+  那么如何把结点陆地所能遍历到的陆地都标记上呢，就可以使用 DFS，BFS 或者并查集。
 
-  那么如何把结点陆地所能遍历到的陆地都标记上呢，就可以使用 DFS，BFS或者并查集。
-
-- DFS 解法：
+- 为了统计岛屿数量同时不重复记录，每当我们搜索到一个岛后，就将这个岛 “淹没” —— 将这个岛所占的地方从 “1” 改为 “0”，这样就不用担心后续会重复记录这个岛屿了，同时将与这个岛相连的岛屿都淹没。
 
   ```java
-  class Solution {
-      private int[][] dir = {
-          {0, 1}, // 右
-          {1, 0}, // 下
-          {0, -1}, // 左
-          {-1, 0} // 上
-      };
-      public int numIslands(char[][] grid) {
-          int result = 0;
-          // 用于判断是否遍历过
-          boolean[][] isVisited = new boolean[grid.length][grid[0].length];
-          for (int i = 0; i < grid.length; i++) {
-              for (int j = 0; j < grid[0].length; j++) {
-                  // 遇到还没遍历过的陆地
-                  if (!isVisited[i][j] && grid[i][j] == '1') {
-                      result++;
-                      // 将陆地和与之相连的陆地都遍历过去
-                      dfs(grid, isVisited, i, j);
+  import java.util.Scanner;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          int[][] graph = new int[n][m];
+          int res = 0;
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  graph[i][j] = in.nextInt();
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  if (graph[i][j] == 1) { // 表示看到岛屿了
+                      res++;
+                      dfs(graph, i, j); // 将相连的岛屿都淹没
                   }
               }
           }
-          return result;
+          System.out.println(res);
       }
-  
-      public void dfs(char[][] grid, boolean[][] isVisited, int x, int y) {
-          if (isVisited[x][y] || grid[x][y] == '0') {
+      
+      public static void dfs(int[][] graph, int x, int y) {
+          if (x < 0 || x >= graph.length || y < 0 || y >= graph[x].length || graph[x][y] == 0) {
               return;
           }
-          isVisited[x][y] = true;
-          // 遍历四个方向
-          for (int i = 0; i < 4; i++) {
-              int nextX = x + dir[i][0];
-              int nextY = y + dir[i][1];
-              if (nextX < 0 || nextX >= grid.length || nextY < 0 || nextY >= grid[0].length) {
-                  continue;
-              }
-              dfs(grid, isVisited, nextX, nextY);
-          }
+          graph[x][y] = 0; // 淹没岛屿
+          // 淹没相连岛屿
+          dfs(graph, x + 1, y);
+          dfs(graph, x, y + 1);
+          dfs(graph, x - 1, y);
+          dfs(graph, x, y - 1);
       }
   }
   ```
 
-  - 因为上面创建了一个 `isVisited` 数组，所以执行时间会更久一点，其实我们完全可以根据 `grid` 本身来判断是否遍历过陆地：
-
-    为了统计岛屿数量同时不重复记录，每当我们搜索到一个岛后，就将这个岛 “淹没” —— 将这个岛所占的地方从 “1” 改为 “0”，这样就不用担心后续会重复记录这个岛屿了。
-
-    ```java
-    class Solution {
-        public int numIslands(char[][] grid) {
-            int result = 0;
-            for (int i = 0; i < grid.length; i++) {
-                for (int j = 0; j < grid[0].length; j++) {
-                    // 遇到还没遍历过的陆地
-                    if (grid[i][j] == '1') {
-                        result++;
-                        // 将陆地和与之相连的陆地都遍历过去
-                        dfs(grid, i, j);
-                    }
-                }
-            }
-            return result;
-        }
-    
-        public void dfs(char[][] grid, int x, int y) {
-            if (x < 0 || x >= grid.length || y < 0 || y >= grid[0].length || grid[x][y] == '0') {
-                return;
-            }
-            grid[x][y] = '0'; // 淹没
-            dfs(grid, x - 1, y); // 上
-            dfs(grid, x, y + 1); // 右
-            dfs(grid, x + 1, y); // 下
-            dfs(grid, x, y - 1); // 左
-        }
-    }
-    ```
-
-### 3.岛屿数量(bfs)
+### 2.2 岛屿数量(bfs)
 
 #### 题目
 
-- 给你一个由 `'1'`（陆地）和 `'0'`（水）组成的的二维网格，请你计算网格中岛屿的数量。
+- 题目描述
 
-  岛屿总是被水包围，并且每座岛屿只能由水平方向和/或竖直方向上相邻的陆地连接形成。
+  给定一个由 1（陆地）和 0（水）组成的矩阵，你需要计算岛屿的数量。岛屿由水平方向或垂直方向上相邻的陆地连接而成，并且四周都是水域。你可以假设矩阵外均被水包围。
 
-  此外，你可以假设该网格的四条边均被水包围。
+- 输入描述
 
-  **示例 1：**
+  第一行包含两个整数 N, M，表示矩阵的行数和列数。
 
-  ```
-  输入：grid = [
-    ["1","1","1","1","0"],
-    ["1","1","0","1","0"],
-    ["1","1","0","0","0"],
-    ["0","0","0","0","0"]
-  ]
-  输出：1
-  ```
+  后续 N 行，每行包含 M 个数字，数字为 1 或者 0。
 
-  **示例 2：**
+  输出描述
+
+  输出一个整数，表示岛屿的数量。如果不存在岛屿，则输出 0。
+
+- 输入示例
 
   ```
-  输入：grid = [
-    ["1","1","0","0","0"],
-    ["1","1","0","0","0"],
-    ["0","0","1","0","0"],
-    ["0","0","0","1","1"]
-  ]
-  输出：3
+  4 5
+  1 1 0 0 0
+  1 1 0 0 0
+  0 0 1 0 0
+  0 0 0 1 1
   ```
 
-  **提示：**
+  输出示例
 
-  - `m == grid.length`
-  - `n == grid[i].length`
-  - `1 <= m, n <= 300`
-  - `grid[i][j]` 的值为 `'0'` 或 `'1'`
+  ```
+  3
+  ```
+
+  提示信息
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240411/20240411153209_67737.png)
+
+  根据测试案例中所展示，岛屿数量共有 3 个，所以输出 3。
+
+  **数据范围：**
+
+  1 <= N, M <= 50
 
 #### 思路
 
@@ -11708,45 +11798,163 @@ public class Main {
   BFS 代码如下：
 
   ```java
-  class Solution {
-      private int[][] dir = {
-          {-1, 0}, // 上 
+  import java.util.Scanner;
+  import java.util.Queue;
+  import java.util.LinkedList;
+  
+  public class Main {
+      private static int[][] dir = {
+          {1, 0}, // 下 
           {0, 1}, // 右
-          {1, 0}, // 下
+          {-1, 0}, // 上
           {0, -1} // 左
       };
-      public int numIslands(char[][] grid) {
-          int result = 0;
-          for (int i = 0; i < grid.length; i++) {
-              for (int j = 0; j < grid[0].length; j++) {
-                  if (grid[i][j] == '1') {
-                      result++;
-                      bfs(grid, i, j);
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          int[][] graph = new int[n][m];
+          int res = 0;
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  graph[i][j] = in.nextInt();
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  if (graph[i][j] == 1) { // 表示看到岛屿了
+                      res++;
+                      bfs(graph, i, j); // 将相连的岛屿都淹没
                   }
               }
           }
-          return result;
+          System.out.println(res);
       }
-  
-      public void bfs(char[][] grid, int x, int y) {
+      
+      public static void bfs(int[][] graph, int x, int y) {
           Queue<int[]> queue = new LinkedList<>();
           queue.offer(new int[]{x, y});
-          grid[x][y] = '0'; // 淹没
+          graph[x][y] = 0; // 淹没当前岛屿
           while (!queue.isEmpty()) {
               int[] loc = queue.poll();
-              int m = loc[0];
-              int n = loc[1];
               for (int i = 0; i < 4; i++) {
-                  int nextX = m + dir[i][0];
-                  int nextY = n + dir[i][1];
-                  if (nextX < 0 || nextX >= grid.length || nextY < 0 || nextY >= grid[0].length || grid[nextX][nextY] == '0') {
-                      continue;
-                  }
-                  // 将与之连接的陆地也淹没
-                  queue.offer(new int[]{nextX, nextY});
-                  grid[nextX][nextY] = '0';
+                  int s = loc[0] + dir[i][0];
+                  int t = loc[1] + dir[i][1];
+                  if (s < 0 || s >= graph.length 
+                      || t < 0 || t >= graph[loc[0]].length 
+                      || graph[s][t] == 0) {
+                          continue;
+                      }
+                  queue.offer(new int[]{s, t});
+                  graph[s][t] = 0; // 淹没相连岛屿
               }
           }
+      }
+  }
+  ```
+
+### 3.孤岛的总面积
+
+#### 题目
+
+- 题目描述
+
+  给定一个由 1（陆地）和 0（水）组成的矩阵，岛屿指的是由水平或垂直方向上相邻的陆地单元格组成的区域，且完全被水域单元格包围。孤岛是那些位于矩阵内部、所有单元格都不接触边缘的岛屿。
+
+  现在你需要计算所有孤岛的总面积，岛屿面积的计算方式为组成岛屿的陆地的总数。
+
+- 输入描述
+
+  第一行包含两个整数 N, M，表示矩阵的行数和列数。之后 N 行，每行包含 M 个数字，数字为 1 或者 0。
+
+  输出描述
+
+  输出一个整数，表示所有孤岛的总面积，如果不存在孤岛，则输出 0。
+
+- 输入示例
+
+  ```
+  4 5
+  1 1 0 0 0
+  1 1 0 0 0
+  0 0 1 0 0
+  0 0 0 1 1
+  ```
+
+  输出示例
+
+  ```
+  1
+  ```
+
+  提示信息
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240412/20240412113711_58587.png)
+
+  在矩阵中心部分的岛屿，因为没有任何一个单元格接触到矩阵边缘，所以该岛屿属于孤岛，总面积为 1。
+
+  数据范围：
+
+  1 <= M, N <= 50。
+
+#### 思路
+
+- 本题要求找到不靠边的陆地面积，那么我们只要从周边找到陆地，然后通过 dfs 或者 bfs 将周边靠陆地且相邻的陆地都变成海洋，然后再去重新遍历地图，统计此时还剩下的陆地就可以了。
+
+  ```java
+  import java.util.Scanner;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          int[][] graph = new int[n][m];
+          int res = 0;
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  graph[i][j] = in.nextInt();
+              }
+          }
+          // 淹没靠左边和靠右边的陆地
+          for (int i = 0; i < n; i++) {
+              if (graph[i][0] == 1) {
+                  dfs(graph, i, 0);
+              }
+              if (graph[i][m - 1] == 1) {
+                  dfs(graph, i, m - 1);
+              }
+          }
+          // 淹没靠上边和靠下边的陆地
+          for (int j = 0; j < m; j++) {
+              if (graph[0][j] == 1) {
+                  dfs(graph, 0, j);
+              }
+              if (graph[n - 1][j] == 1) {
+                  dfs(graph, n - 1, j);
+              }
+          }
+          // 剩下的就是孤岛，直接累加即可
+          for (int i = 1; i < n - 1; i++) {
+              for (int j = 1; j < m - 1; j++) {
+                  if (graph[i][j] == 1) {
+                      res++;
+                  }
+              }
+          }
+          System.out.println(res);
+      }
+      
+      // 淹没相连的岛屿
+      public static void dfs(int[][] graph, int x, int y) {
+          if (x < 0 || x >= graph.length || y < 0 || y >= graph[0].length || graph[x][y] == 0) {
+              return;
+          }
+          graph[x][y] = 0;
+          dfs(graph, x + 1, y);
+          dfs(graph, x, y + 1);
+          dfs(graph, x -1, y);
+          dfs(graph, x, y - 1);
       }
   }
   ```
