@@ -11853,7 +11853,7 @@ public class Main {
   }
   ```
 
-### 3.孤岛的总面积
+### 2.3 孤岛的总面积
 
 #### 题目
 
@@ -11958,6 +11958,334 @@ public class Main {
       }
   }
   ```
+
+### 2.4 沉没孤岛
+
+#### 题目
+
+- 题目描述
+
+  给定一个由 1（陆地）和 0（水）组成的矩阵，岛屿指的是由水平或垂直方向上相邻的陆地单元格组成的区域，且完全被水域单元格包围。孤岛是那些位于矩阵内部、所有单元格都不接触边缘的岛屿。
+
+  现在你需要将所有孤岛“沉没”，即将孤岛中的所有陆地单元格（1）转变为水域单元格（0）。
+
+- 输入描述
+
+  第一行包含两个整数 N, M，表示矩阵的行数和列数。
+
+  之后 N 行，每行包含 M 个数字，数字为 1 或者 0，表示岛屿的单元格。
+
+  输出描述
+
+  输出将孤岛“沉没”之后的岛屿矩阵。 注意：每个元素后面都有一个空格
+
+- 输入示例
+
+  ```
+  4 5
+  1 1 0 0 0
+  1 1 0 0 0
+  0 0 1 0 0
+  0 0 0 1 1
+  ```
+
+  输出示例
+
+  ```
+  1 1 0 0 0
+  1 1 0 0 0
+  0 0 0 0 0
+  0 0 0 1 1
+  ```
+
+  提示信息
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240412/20240412144356_69900.png)
+
+  将孤岛沉没。
+
+  
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240412/20240412144445_89755.png)
+
+  数据范围：
+
+  1 <= M, N <= 50。
+
+#### 思路
+
+- 这题和 `2.3 孤岛的总面积` 正好反过来了，`2.3 孤岛的总面积` 是求孤岛的面积，而本题是要把孤岛都淹没。那么两题在思路上也是差不多的。
+
+- 思路依然是从地图周边出发，将周边空格相邻的陆地都做上标记，然后在遍历一遍地图，遇到 陆地 且没做过标记的，那么都是地图中间的 陆地 ，全部改成水域就行。一种直观的想法是，定义一个 visited 二维数组，单独标记周边的陆地，然后遍历地图的时候同时对 数组 graph 和 数组visited 进行判断，决定 陆地是否变成水域。
+
+  - 这样做其实就有点麻烦了，不用额外定义空间标记周边的陆地，可以直接改陆地为其他特殊值作为标记。
+    1. 步骤一：深搜或者广搜将地图周边的 1 （陆地）全部改成 2 （特殊标记）
+    2. 步骤二：将水域中间 1 （陆地）全部改成 水域（0）
+    3. 步骤三：将之前标记的 2 改为 1 （陆地）
+
+  <img src="https://code-thinking-1253855093.file.myqcloud.com/pics/20240517113813.png" alt="img" style="zoom:50%;" />
+
+  ```java
+  import java.util.Scanner;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          int[][] graph = new int[n][m];
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  graph[i][j] = in.nextInt();
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              if (graph[i][0] == 1) {
+                  dfs(graph, i, 0);
+              }
+              if (graph[i][m - 1] == 1) {
+                  dfs(graph, i, m - 1);
+              }
+          }
+          for (int j = 0; j < m; j++) {
+              if (graph[0][j] == 1) {
+                  dfs(graph, 0, j);
+              }
+              if (graph[n - 1][j] == 1) {
+                  dfs(graph, n - 1, j);
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              StringBuilder sb = new StringBuilder();
+              for (int j = 0; j < m; j++) {
+                  if (graph[i][j] == 1) {
+                      graph[i][j] = 0; // 步骤二：再将孤岛淹没
+                  }
+                  if (graph[i][j] == 2) {
+                      graph[i][j] = 1; // 步骤三：再将原来的周边陆地恢复
+                  }
+                  sb.append(graph[i][j]);
+                  sb.append(" ");
+              }
+              sb.deleteCharAt(sb.length() - 1);
+              System.out.println(sb.toString());
+          }
+      }
+      
+      public static void dfs(int[][] graph, int x, int y) {
+          if (x < 0 || x >= graph.length || y < 0 || y >= graph[0].length 
+              || graph[x][y] == 0 || graph[x][y] == 2) {
+              return;
+          }
+          graph[x][y] = 2; // 步骤一：先将周边陆地用特殊值标记
+          dfs(graph, x + 1, y);
+          dfs(graph, x, y + 1);
+          dfs(graph, x - 1, y);
+          dfs(graph, x, y - 1);
+      }
+  }
+  ```
+
+### 3.水流问题
+
+#### 题目
+
+- 题目描述
+
+  现有一个 N × M 的矩阵，每个单元格包含一个数值，这个数值代表该位置的相对高度。矩阵的左边界和上边界被认为是第一组边界，而矩阵的右边界和下边界被视为第二组边界。
+
+  矩阵模拟了一个地形，当雨水落在上面时，水会根据地形的倾斜向低处流动，但只能从较高或等高的地点流向较低或等高并且相邻（上下左右方向）的地点。我们的目标是确定那些单元格，从这些单元格出发的水可以到达第一组边界和第二组边界。
+
+- 输入描述
+
+  第一行包含两个整数 N 和 M，分别表示矩阵的行数和列数。 
+
+  后续 N 行，每行包含 M 个整数，表示矩阵中的每个单元格的高度。
+
+  输出描述
+
+  输出共有多行，每行输出两个整数，用一个空格隔开，表示可达第一组边界和第二组边界的单元格的坐标，输出顺序任意。
+
+- 输入示例
+
+  ```
+  5 5
+  1 3 1 2 4
+  1 2 1 3 2
+  2 4 7 2 1
+  4 5 6 1 1
+  1 4 1 2 1
+  ```
+
+  输出示例
+
+  ```
+  0 4
+  1 3
+  2 2
+  3 0
+  3 1
+  3 2
+  4 0
+  4 1
+  ```
+
+  提示信息
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240418/20240418103946_19439.png)
+
+  图中的蓝色方块上的雨水既能流向第一组边界，也能流向第二组边界。所以最终答案为所有蓝色方块的坐标。 
+
+  **数据范围：**
+
+  1 <= M, N <= 100。
+
+#### 思路
+
+- 一个比较直白的想法，其实就是遍历每个点，然后看这个点的水流能不能同时到达第一组边界和第二组边界。那这其实是一种暴力解法，是会超时的：
+
+  ```java
+  import java.util.Scanner;
+  
+  public class Main {
+      private static int[][] dir = {
+        {1, 0},
+        {0, 1},
+        {-1, 0},
+        {0, -1}
+      };
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          int[][] graph = new int[n][m];
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  graph[i][j] = in.nextInt();
+              }
+          }
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  if (isReach(graph, i, j)) { // 判断当前位置的水流是否能到达边界
+                      System.out.println(i + " " + j);
+                  }
+              }
+          }
+      }
+      
+      // 判断水流是否能到达边界
+      public static boolean isReach(int[][] graph, int x, int y) {
+          boolean[][] visited = new boolean[graph.length][graph[0].length];
+          dfs(graph, visited, x, y);
+          boolean isFirst = false;
+          boolean isSecond = false;
+          for (int i = 0; i < graph.length; i++) {
+              if (visited[i][0]) {
+                  isFirst = true;
+                  break;
+              }
+          }
+          for (int j = 0; j < graph[0].length; j++) {
+              if (visited[0][j]) {
+                  isFirst = true;
+                  break;
+              }
+          }
+          for (int i = 0; i < graph.length; i++) {
+              if (visited[i][graph[0].length - 1]) {
+                  isSecond = true;
+                  break;
+              }
+          }
+          for (int j = 0; j < graph[0].length; j++) {
+              if (visited[graph.length - 1][j]) {
+                  isSecond = true;
+                  break;
+              }
+          }
+          return isFirst && isSecond;
+      }
+      
+      // 将水流能到达的位置都置为true
+      public static void dfs(int[][] graph, boolean[][] visited, int x, int y) {
+          visited[x][y] = true;
+          for (int i = 0; i < 4; i++) {
+              int nextX = x + dir[i][0];
+              int nextY = y + dir[i][1];
+              if (nextX < 0 || nextX >= graph.length || nextY < 0 || nextY >= graph[0].length
+                  || visited[nextX][nextY] || graph[x][y] < graph[nextX][nextY]) {
+                  continue;
+              }
+              dfs(graph, visited, nextX, nextY);
+          }
+      }
+  }
+  ```
+
+  - 时间复杂度为 O(n^2 * m^2)。
+
+- 我们可以反过来想，从第一组边界上的节点逆流而上，将遍历过的节点都标记上。同样从第二组边界的边上节点逆流而上，将遍历过的节点也标记上。然后**两方都标记过的节点就是既可以流向第一组边界也可以流向第二组边界的节点**。
+
+  ```java
+  import java.util.Scanner;
+  
+  public class Main {
+      private static int[][] dir = {
+        {1, 0},
+        {0, 1},
+        {-1, 0},
+        {0, -1}
+      };
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int n = in.nextInt();
+          int m = in.nextInt();
+          int[][] graph = new int[n][m];
+          boolean[][] firstBoarder = new boolean[n][m];
+          boolean[][] secondBoarder = new boolean[n][m];
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  graph[i][j] = in.nextInt();
+              }
+          }
+          // 从第一组边界逆流而上标记
+          for (int i = 0; i < n; i++) {
+              dfs(graph, firstBoarder, i, 0);
+          }
+          for (int j = 0; j < m; j++) {
+              dfs(graph, firstBoarder, 0, j);
+          }
+          // 从第二组边界逆流而上标记
+          for (int i = 0; i < n; i++) {
+              dfs(graph, secondBoarder, i, m - 1);
+          }
+          for (int j = 0; j < m; j++) {
+              dfs(graph, secondBoarder, n - 1, j);
+          }
+          for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                  if (firstBoarder[i][j] && secondBoarder[i][j]) {
+                      System.out.println(i + " " + j);
+                  }
+              }
+          }
+      }
+      public static void dfs(int[][] graph, boolean boarder[][], int x, int y) {
+          boarder[x][y] = true;
+          for (int i = 0; i < 4; i++) {
+              int nextX = x + dir[i][0];
+              int nextY = y + dir[i][1];
+              if (nextX < 0 || nextX >= graph.length || nextY < 0 || nextY >= graph[0].length
+                  || graph[x][y] > graph[nextX][nextY] || boarder[nextX][nextY]) {
+                  continue;
+              }
+              dfs(graph, boarder, nextX, nextY);
+          }
+      }
+  }
+  ```
+
+  - 时间复杂度为 O(n * m)。
 
 ## 排序
 
