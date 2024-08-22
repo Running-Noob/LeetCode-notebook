@@ -446,36 +446,45 @@
   ```java
   class Solution {
       public int[][] generateMatrix(int n) {
-          int num = 0;    //矩阵中填入的数字
-          int[][] matrix = new int[n][n];
-          int start = 0;  //每一圈循环开始的点(start,start)
-          int loop = 0;   //循环的圈数
-          int i, j;		//i指代行下标，j指代列下标
-          while (loop < n / 2) {
-              for(j = start; j < n - loop - 1; j++){
-                  matrix[start][j] = ++num;
-              }
-              for(i = start; i < n - loop - 1; i++){
-                  matrix[i][j] = ++num;
-              }
-              for(; j > loop; j--){
-                  matrix[i][j] = ++num;
-              }
-              for(; i > loop; i--){
-                  matrix[i][j] = ++num;
-              }
-              start++;    //循环开始的点的更新
-              loop++;     //已经循环了一圈
+          if (n == 0) {
+              return null;
           }
-          //当n为奇数时，处理矩阵中间的那个单元块
-          if(n % 2 == 1){
-              matrix[loop][loop] = ++num;
+          int[][] res = new int[n][n];
+          int left, right, top, bottom;
+          left = 0;
+          right = n - 1;
+          top = 0;
+          bottom = n - 1;
+          int i = 1;
+          // 每一层的左上顶点为 (top, left)
+          // 每一层的右下顶点为 (bottom, right)
+          while (left < right && top < bottom) {
+              for (int col = left; col < right; col++) {
+                  res[top][col] = i++;
+              }
+              for (int row = top; row < bottom; row++) {
+                  res[row][right] = i++;
+              }
+              for (int col = right; col > left; col--) {
+                  res[bottom][col] = i++;
+              }
+              for (int row = bottom; row > top; row--) {
+                  res[row][left] = i++;
+              }
+              left++;
+              right--;
+              top++;
+              bottom--;
           }
-          return matrix;
+          // 最后的特殊情况
+          if (n % 2 == 1) {
+              res[left][top] = i++;
+          }
+          return res;
       }
   }
   ```
-
+  
   - 时间复杂度 O(n^2): 模拟遍历二维矩阵的时间
   - 空间复杂度 O(1)
 
@@ -2343,7 +2352,7 @@ public class Solution {
   }
   ```
 
-### 7.三数之和(去重)
+### 7.三数之和(排序+去重+双指针)
 
 #### 题目
 
@@ -2439,7 +2448,7 @@ public class Solution {
 
   - 要注意去重的逻辑。
 
-### 8.★四数之和(去重)
+### 8.四数之和(排序+去重+双指针)
 
 #### 题目
 
@@ -2860,6 +2869,30 @@ public class Solution {
       }
   }
   ```
+
+### 3.1 KMP选择题
+
+- 在笔试的选择题中，选项的 next 数组和当时学浙大数据结构的 next 数组有些出入，但是它们之间存在一定的关系，以后遇到求 KMP 的 next 数组的选择题，都这么做：
+
+  1. **先根据当时学的浙大数据结构的方法求出 next 数组。**
+  2. **将该 next 数组的值全部加 1。**
+  3. **然后将 next 数组右移一位，左边用 -1 补位。**
+  4. **最后将 next 数组全部加 1，得到答案。**
+
+  你说为什么这么做，不知道，既然选择题选项就这样，那也没办法。举个例子：
+
+  > 已知串s=bccabcaac，采用KMP算法进行模式匹配，则得到的nex数组值为()
+  >
+  > A：011211111
+  > B：011112311
+  > C：011121132
+  > D：021221121
+
+  - 根据浙大数据结构课程的方法，next 数组应该为：-1，-1，-1，-1，0，1，-1，-1，-1
+  - 然后将该 next 数组的值全部加 1，得到 0，0，0，0，1，2，0，0，0
+  - 然后将 next 数组右移一位，得到 -1，0，0，0，0，1，2，0，0
+  - 最后将 next 数组全部加 1，得到答案：0，1，1，1，1，2，3，1，1
+  - 答案：B 
 
 ### 4.重复的子字符串
 
@@ -11519,15 +11552,13 @@ public class Main {
      ```java
      for (int i = 1; i <= n; i++) {
          if (graph[cur][i] == 1) { // 遍历结点 cur 链接的所有结点
-             graph[cur][i] = 0;
              path.add(i);
              dfs(graph, n, i);
              path.remove(path.size() - 1); // 回溯
-             graph[cur][i] = 1; // 回溯
          }
      }
      ```
-
+  
 - **邻接矩阵**的整体代码如下：
 
   ```java
