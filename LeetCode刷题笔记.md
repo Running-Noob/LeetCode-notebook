@@ -3901,6 +3901,14 @@ public class Solution {
   - 之前我们讲栈与队列的时候，就说过栈其实就是递归的一种实现结构，也就说前中后序遍历的逻辑其实都是可以**借助栈使用递归的方式**来实现的。
   - 而广度优先遍历的实现一般使用**队列**来实现
 
+##### 由前序遍历和中序遍历得到整棵树
+
+- 由前序遍历的第一个输出结点为根结点可以知道哪个是根结点，在已知根结点后，就可以从中序遍历的输出中得到左子树结点的个数和右子树结点的个数（在根结点输出前输出的都是左子树的结点，在根结点输出后输出的都是右子树中的结点），从而得到左子树部分和右子树部分，然后继续前面的步骤，可以从前序遍历得到左子树的根结点和右子树的根结点，......，以此类推，最终得到整棵树。
+
+##### 由中序遍历和后序遍历得到整棵树
+
+- 由后序遍历的最后一个输出结点为根结点可以知道哪个是根结点，在已知根结点后，就可以从中序遍历的输出中得到左子树结点的个数和右子树结点的个数（在根结点输出前输出的都是左子树的结点，在根结点输出后输出的都是右子树中的结点），从而得到左子树部分和右子树部分，然后继续前面的步骤，可以从后序遍历得到左子树的根结点和右子树的根结点，......，以此类推，最终得到整棵树。
+
 #### 二叉树的定义
 
 ```java
@@ -12258,65 +12266,479 @@ public class Main {
 - 我们可以反过来想，从第一组边界上的结点逆流而上，将遍历过的结点都标记上。同样从第二组边界的边上结点逆流而上，将遍历过的结点也标记上。然后**两方都标记过的结点就是既可以流向第一组边界也可以流向第二组边界的结点**。
 
   ```java
-  import java.util.Scanner;
+  import java.util.*;
   
   public class Main {
-      private static int[][] dir = {
-        {1, 0},
-        {0, 1},
-        {-1, 0},
-        {0, -1}
-      };
       public static void main(String[] args) {
           Scanner in = new Scanner(System.in);
-          int n = in.nextInt();
-          int m = in.nextInt();
-          int[][] graph = new int[n][m];
-          boolean[][] firstBoarder = new boolean[n][m];
-          boolean[][] secondBoarder = new boolean[n][m];
-          for (int i = 0; i < n; i++) {
-              for (int j = 0; j < m; j++) {
-                  graph[i][j] = in.nextInt();
+          int V = in.nextInt();
+          int E = in.nextInt();
+          int[][] dist = new int[V + 1][V + 1];
+          // minDist存储的是其他未连接点和当前图之间的最小距离
+          int[] minDist = new int[V + 1];
+          // 用Integer.MAX_VALUE表明两个岛屿之间不连通
+          for (int i = 1; i <= V; i++) {
+              Arrays.fill(dist[i], Integer.MAX_VALUE);
+          }
+          Arrays.fill(minDist, Integer.MAX_VALUE);
+          for (int i = 0; i < E; i++) {
+              int v1 = in.nextInt();
+              int v2 = in.nextInt();
+              int val = in.nextInt();
+              dist[v1][v2] = dist[v2][v1] = val;
+          }
+          int res = 0;
+          // 表示已经有多少岛屿加入图中了
+          List<Integer> reached = new ArrayList<>();
+          // 先把第一个结点加入图中
+          reached.add(1);
+          minDist[1] = 0;
+          for (int i = 2; i <= V; i++) {
+              minDist[i] = dist[1][i];
+          }
+          while (reached.size() < V) {
+              int k = 0; // 标记当前要把哪个岛屿加入图中
+              int min = Integer.MAX_VALUE;
+              for (int i = 1; i <= V; i++) {
+                  if (!reached.contains(i) && minDist[i] < min) {
+                      k = i;
+                      min = minDist[i];
+                  }
               }
-          }
-          // 从第一组边界逆流而上标记
-          for (int i = 0; i < n; i++) {
-              dfs(graph, firstBoarder, i, 0);
-          }
-          for (int j = 0; j < m; j++) {
-              dfs(graph, firstBoarder, 0, j);
-          }
-          // 从第二组边界逆流而上标记
-          for (int i = 0; i < n; i++) {
-              dfs(graph, secondBoarder, i, m - 1);
-          }
-          for (int j = 0; j < m; j++) {
-              dfs(graph, secondBoarder, n - 1, j);
-          }
-          for (int i = 0; i < n; i++) {
-              for (int j = 0; j < m; j++) {
-                  if (firstBoarder[i][j] && secondBoarder[i][j]) {
-                      System.out.println(i + " " + j);
+              if (k == 0) {
+                  // 表明岛屿之间并不都是连通的
+                  System.out.println(-1);
+                  return;
+              }
+              res += min;
+              reached.add(k);
+              minDist[k] = 0;
+              // 更新minDist数组
+              for (int i = 1; i <= V; i++) {
+                  if (dist[k][i] < minDist[i]) {
+                      minDist[i] = dist[k][i];
                   }
               }
           }
+          System.out.println(res);
       }
-      public static void dfs(int[][] graph, boolean boarder[][], int x, int y) {
-          boarder[x][y] = true;
-          for (int i = 0; i < 4; i++) {
-              int nextX = x + dir[i][0];
-              int nextY = y + dir[i][1];
-              if (nextX < 0 || nextX >= graph.length || nextY < 0 || nextY >= graph[0].length
-                  || graph[x][y] > graph[nextX][nextY] || boarder[nextX][nextY]) {
-                  continue;
-              }
-              dfs(graph, boarder, nextX, nextY);
+  }
+  ```
+  
+  - 时间复杂度为 O(n * m)。
+
+### 并查集理论基础
+
+- 并查集可以解决什么问题：连通性问题。
+  - 可以将两个元素添加到同一个集合中。
+  - 可以判断两个元素在不在同一个集合中。
+- 我们将三个元素 A，B，C （分别是数字）放在同一个集合，其实就是将三个元素连通在一起，如何连通呢？
+  - 只需要用一个一维数组来表示，即：root[A] = B，root[B] = C 这样就表述 A 与 B 与 C连通了。
+  - 这里要讲到寻根思路，**只要 A ，B，C 在同一个根下就是同一个集合**。
+    - 给出A元素，就可以通过 root[A] = B，root[B] = C，找到根为 C。
+    - 给出B元素，就可以通过 root[B] = C，找到根也为为 C，说明 A 和 B 是在同一个集合里。
+    - 如何表示 C 也在同一个集合里呢？ 我们需要 root[C] = C，即C的根也为C，这样就方便表示 A，B，C 都在同一个集合里了。
+
+#### 并查集模板代码
+
+- 基于上述例子，我们不难写出并查集的下述模板代码：
+
+  - 初始化并查集数组：
+
+    ```java
+    public int[] init(int n) {
+        int[] root = new int[n];
+        for (int i = 0; i < n; i++) {
+            root[i] = i;
+        }
+        return root;
+    }
+    ```
+
+  - 找到当前元素的根结点（同时还压缩了路径）：
+
+    ```java
+    public int find(int[] root, int x) {
+        if (root[x] == x) { // 说明当前元素的根就是它自己
+            return x;
+        }
+        // 让当前元素 x 的父节点直接变为集合的根结点，即压缩了路径
+        return root[x] = find(root, root[x]);
+    }
+    ```
+
+  - 判断两个元素是否在一个集合中：
+
+    ```java
+    public boolean isSameCollection(int[] root, int x, int y) {
+        int xRoot = find(root, x);
+        int yRoot = find(root, y);
+        if (xRoot == yRoot) {
+            return true;
+        }
+        return false;
+    }
+    ```
+
+  - 将两个元素所属的不同集合合并为一个集合：
+
+    ```java
+    public void join(int[] root, int x, int y) {
+        int xRoot = find(root, x);
+        int yRoot = find(root, y);
+        if (xRoot == yRoot) {
+            return;
+        }
+        // 让第二个根结点的父节点变为第一个根结点，实现集合的合并
+        root[yRoot] = xRoot;
+    }
+    ```
+
+### 4.最小生成树
+
+#### 题目
+
+- 题目描述
+
+  在世界的某个区域，有一些分散的神秘岛屿，每个岛屿上都有一种珍稀的资源或者宝藏。国王打算在这些岛屿上建公路，方便运输。
+
+  不同岛屿之间，路途距离不同，国王希望你可以规划建公路的方案，如何可以以最短的总公路距离将 所有岛屿联通起来（注意：这是一个无向图）。 
+
+  给定一张地图，其中包括了所有的岛屿，以及它们之间的距离。以最小化公路建设长度，确保可以链接到所有岛屿。
+
+- 输入描述
+
+  第一行包含两个整数V 和 E，V代表顶点数，E代表边数 。顶点编号是从1到V。例如：V=2，一个有两个顶点，分别是1和2。
+
+  接下来共有 E 行，每行三个整数 v1，v2 和 val，v1 和 v2 为边的起点和终点，val代表边的权值。
+
+  输出描述
+
+  输出联通所有岛屿的最小路径总距离
+
+- 输入示例
+
+  ```
+  7 11
+  1 2 1
+  1 3 1
+  1 5 2
+  2 6 1
+  2 4 2
+  2 3 2
+  3 4 1
+  4 5 1
+  5 6 2
+  5 7 1
+  6 7 1
+  ```
+
+  输出示例
+
+  ```
+  6
+  ```
+
+  提示信息
+
+  数据范围：
+  2 <= V <= 10000;
+  1 <= E <= 100000;
+  0 <= val <= 10000;
+
+  如下图，可见将所有的顶点都访问一遍，总距离最低是6.
+
+   ![img](https://kamacoder.com/upload/kamacoder.com/image/20230919/20230919201506_90440.png)
+
+#### 思路
+
+##### prim算法(适用于稠密图)
+
+- prim 算法的核心思想是让一棵小树长成大树。
+
+  - prim 算法核心就是三步，称为 **prim三部曲**，大家一定要熟悉这三步，代码相对会好些很多：
+    1. 选距离生成树的最近节点
+    2. 将最近节点加入生成树
+    3. **更新非生成树节点到生成树的距离（即更新 `minDist` 数组）**
+       - `minDist` 数组用来记录每一个未加入生成树的节点距离最小生成树的最近距离。
+
+  ```java
+  import java.util.*;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int V = in.nextInt();
+          int E = in.nextInt();
+          int[][] dist = new int[V + 1][V + 1];
+          // minDist存储的是其他未连接点和当前图之间的最小距离
+          int[] minDist = new int[V + 1];
+          // 用Integer.MAX_VALUE表明两个岛屿之间不连通
+          for (int i = 1; i <= V; i++) {
+              Arrays.fill(dist[i], Integer.MAX_VALUE);
           }
+          Arrays.fill(minDist, Integer.MAX_VALUE);
+          for (int i = 0; i < E; i++) {
+              int v1 = in.nextInt();
+              int v2 = in.nextInt();
+              int val = in.nextInt();
+              dist[v1][v2] = dist[v2][v1] = val;
+          }
+          int res = 0;
+          // 表示已经有多少岛屿加入图中了
+          int count = 0;
+          // 先把第一个结点加入图中
+          minDist[1] = 0;
+          count++;
+          for (int i = 2; i <= V; i++) {
+              minDist[i] = dist[1][i];
+          }
+          while (count < V) {
+              int k = 0; // 标记当前要把哪个岛屿加入图中
+              int min = Integer.MAX_VALUE;
+              for (int i = 1; i <= V; i++) {
+                  if (minDist[i] != 0 && minDist[i] < min) {
+                      k = i;
+                      min = minDist[i];
+                  }
+              }
+              if (k == 0) {
+                  // 表明岛屿之间并不都是连通的
+                  System.out.println(-1);
+                  return;
+              }
+              res += min;
+              count++;
+              minDist[k] = 0;
+              // 更新minDist数组
+              for (int i = 1; i <= V; i++) {
+                  if (dist[k][i] < minDist[i]) {
+                      minDist[i] = dist[k][i];
+                  }
+              }
+          }
+          System.out.println(res);
       }
   }
   ```
 
-  - 时间复杂度为 O(n * m)。
+##### kruskal算法(适用于稀疏图)
+
+- kruskal 算法的核心思想是将森林合并成树。
+
+  - kruscal 的思路：
+
+    1. 先将边按权值排序，因为要优先选最小的边加入到生成树里。
+
+    2. 遍历排序后的边：
+
+       - 如果边首尾的两个节点在同一个集合，说明如果连上这条边图中会出现环，就舍弃这条边
+       - 如果边首尾的两个节点不在同一个集合，加入到最小生成树，并把两个节点加入同一个集合
+
+       使用**并查集**来判断两个结点是否在同一个集合中。
+
+  ```java
+  import java.util.*;
+  
+  class Edge {
+      int start;
+      int end;
+      int val;
+      public Edge() {}
+      public Edge(int start, int end, int val) {
+          this.start = start;
+          this.end = end;
+          this.val = val;
+      }
+  }
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int V = in.nextInt();
+          int E = in.nextInt();
+          // 并查集数组
+          int[] root = new int[V + 1];
+          for (int i = 1; i <= V; i++) {
+              root[i] = i; // 初始时根都是自己
+          }
+          int res = 0;
+          // 将边从小到大排序
+          Queue<Edge> queue = new PriorityQueue<>((e1, e2) -> e1.val - e2.val);
+          for (int i = 0; i < E; i++) {
+              int v1 = in.nextInt();
+              int v2 = in.nextInt();
+              int val = in.nextInt();
+              queue.offer(new Edge(v1, v2, val));
+          }
+          while (!queue.isEmpty()) {
+              Edge e = queue.poll();
+              int root1 = find(root, e.start);
+              int root2 = find(root, e.end);
+              // 说明在同一个集合中
+              if (root1 == root2) {
+                  continue;
+              } else {
+                  root[root2] = root1; // 将两个集合合并
+                  res += e.val;
+              }
+          }
+          System.out.println(res);
+      }
+      
+      // 找到根结点，同时压缩路径
+      public static int find(int[] root, int v) {
+          if (root[v] == v) {
+              return v;
+          }
+          return root[v] = find(root, root[v]);
+      }
+  }
+  ```
+
+#### 进阶(输出最小生成树的边)
+
+- 原题是求联通所有岛屿的最小路径总距离，那如果要把这颗最小生成树画出来呢？
+
+  - 对于 prim 算法，可以用一个 parent 数组记录最小生成树中结点之间的关系，`parent[当前岛屿] = 前一个岛屿`。
+
+    ```java
+    import java.util.*;
+    
+    public class Main {
+        public static void main(String[] args) {
+            Scanner in = new Scanner(System.in);
+            int V = in.nextInt();
+            int E = in.nextInt();
+            int[][] dist = new int[V + 1][V + 1];
+            // minDist存储的是其他未连接点和当前图之间的最小距离
+            int[] minDist = new int[V + 1];
+            // 记录最小生成树的样子
+            int[] parent = new int[V + 1];
+            // 用Integer.MAX_VALUE表明两个岛屿之间不连通
+            for (int i = 1; i <= V; i++) {
+                Arrays.fill(dist[i], Integer.MAX_VALUE);
+            }
+            Arrays.fill(minDist, Integer.MAX_VALUE);
+            for (int i = 0; i < E; i++) {
+                int v1 = in.nextInt();
+                int v2 = in.nextInt();
+                int val = in.nextInt();
+                dist[v1][v2] = dist[v2][v1] = val;
+            }
+            int res = 0;
+            // 表示已经有多少岛屿加入图中了
+            int count = 0;
+            // 先把第一个结点加入图中
+            minDist[1] = 0;
+            count++;
+            for (int i = 2; i <= V; i++) {
+                minDist[i] = dist[1][i];
+                if (minDist[i] != Integer.MAX_VALUE) {
+                    parent[i] = 1;
+                }
+            }
+            while (count < V) {
+                int k = 0; // 标记当前要把哪个岛屿加入图中
+                int min = Integer.MAX_VALUE;
+                for (int i = 1; i <= V; i++) {
+                    if (minDist[i] != 0 && minDist[i] < min) {
+                        k = i;
+                        min = minDist[i];
+                    }
+                }
+                if (k == 0) {
+                    // 表明岛屿之间并不都是连通的
+                    System.out.println(-1);
+                    return;
+                }
+                res += min;
+                count++;
+                minDist[k] = 0;
+                // 更新minDist数组
+                for (int i = 1; i <= V; i++) {
+                    if (dist[k][i] < minDist[i]) {
+                        minDist[i] = dist[k][i];
+                        parent[i] = k;
+                    }
+                }
+            }
+            // 打印出最小生成树
+            for (int i = 1; i <= V; i++) {
+                System.out.println(parent[i] + "->" + i);
+            }
+            System.out.println(res);
+        }
+    }
+    ```
+
+  - 对于 kruskal 算法，直接对边进行操作即可。
+
+    ```java
+    import java.util.*;
+    
+    class Edge {
+        int start;
+        int end;
+        int val;
+        public Edge() {}
+        public Edge(int start, int end, int val) {
+            this.start = start;
+            this.end = end;
+            this.val = val;
+        }
+    }
+    
+    public class Main {
+        public static void main(String[] args) {
+            Scanner in = new Scanner(System.in);
+            int V = in.nextInt();
+            int E = in.nextInt();
+            // 并查集数组
+            int[] root = new int[V + 1];
+            for (int i = 1; i <= V; i++) {
+                root[i] = i; // 初始时根都是自己
+            }
+            int res = 0;
+            // 将边从小到大排序
+            Queue<Edge> queue = new PriorityQueue<>((e1, e2) -> e1.val - e2.val);
+            // 存储最小生成树的边
+            List<Edge> edges = new ArrayList<>();
+            for (int i = 0; i < E; i++) {
+                int v1 = in.nextInt();
+                int v2 = in.nextInt();
+                int val = in.nextInt();
+                queue.offer(new Edge(v1, v2, val));
+            }
+            while (!queue.isEmpty()) {
+                Edge e = queue.poll();
+                int root1 = find(root, e.start);
+                int root2 = find(root, e.end);
+                // 说明在同一个集合中
+                if (root1 == root2) {
+                    continue;
+                } else {
+                    edges.add(e);
+                    root[root2] = root1; // 将两个集合合并
+                    res += e.val;
+                }
+            }
+            // 输出最小生成树
+            for (Edge e : edges) {
+                System.out.println(e.start + "->" + e.end);
+            }
+            System.out.println(res);
+        }
+        
+        // 找到根结点，同时压缩路径
+        public static int find(int[] root, int v) {
+            if (root[v] == v) {
+                return v;
+            }
+            return root[v] = find(root, root[v]);
+        }
+    }
+    ```
 
 ## 排序
 
@@ -12556,6 +12978,7 @@ public class Main {
     ```
 
     - 时间复杂度：最好、最坏、平均都是 O(nlogn)
+    - 构建一个堆的时间复杂度为 O(n)（数据结构笔记上有），基于构建好的堆进行堆排序的时间复杂度为 O(nlogn)，所以总的时间复杂度为 O(nlogn)。
 
   - **★归并排序（稳定）**：
 
