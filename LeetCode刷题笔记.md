@@ -13073,3 +13073,37 @@ public class Main {
         最终对于数字 5，失败的比较次数是 3 次，也就对应了图中树的最左边那个红色结点，该结点所在层数为 4，失败比较次数是 4 - 1 = 3。
 
   参考：[关于二分搜索平均搜索长度的计算 - 简书 (jianshu.com)](https://www.jianshu.com/p/020b4625a99f) 
+
+## 技巧
+
+### 1.最大公约数写法
+
+- 考虑到已经多次碰到最大公约数，所以在这里记录一下最大公约数的写法：
+
+- 最早学习最大公约数时，用的是**辗转相除法**，写法是：
+
+  ```java
+  // 最大公约数
+  public int gcd(int m, int n) {
+      int x = m;
+      int y = n;
+      int temp = x % y;
+      while (temp != 0) {
+          x = y;
+          y = temp;
+          temp = x % y;
+      }
+      return y;
+  }
+  ```
+
+  在 pdd 一面中，面试官要求写出更优的写法，后查询发现，更优写法为：
+
+  ```java
+  // 最大公约数
+  public int gcd(int m, int n) {
+      return n == 0 ? m : gcd(n, m % n);
+  }
+  ```
+
+  
