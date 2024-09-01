@@ -13406,4 +13406,119 @@ public class Main {
 
 #### 思路
 
-- 
+- 等差数列，有个核心概念就是**公差**。本题要求的是数组中最长等差子序列的长度，可以很容易推断出这存在重叠子问题，因此可以用动态规划来解决。
+
+- 动归五部曲：
+
+  1. **确定 dp 数组及下标含义：**
+     - 我们定义 `dp[i][d]` 表示对于数组中的前 i+1 个数，当公差为 d 时，数组的最长等差子序列的长度是多少。
+  2. **确定递推公式：**
+     - 对于当前的数 `nums[i]`，它和之前的数的公差可能都不相同，因此，在内循环中，我们需要先计算当前数 `nums[i]` 和之前的数 `nums[j]` 的差值，以这个差值为公差去更新 dp 数组。
+     - 递推公式为：`dp[i][d] = Math.max(dp[i][d], dp[j][d] + 1)`
+  3. **对 dp 数组进行初始化：**
+     - 对于每轮循环，都将 dp[i] 初始化为 1，`Arrays.fill(dp[i], 1)`，表示不论公差为几，一开始的最长等差子序列长度为 1，即每个数自己就是一个等差数列。
+  4. **确定迭代顺序：**
+     - 很显然，外循环是遍历整个数组，从左到右进行遍历。内循环是遍历当前数 `num[i]` 之前的数，从左到右进行遍历。
+  5. **举例推导 dp 数组。**
+
+  最终代码如下：
+
+  ```java
+  class Solution {
+      public int longestArithSeqLength(int[] nums) {
+          if (nums == null || nums.length == 0) {
+              return 0;
+          }
+          int n = nums.length;
+          int min = Integer.MAX_VALUE;
+          int max = Integer.MIN_VALUE;
+          // 得到数组中的最大最小数
+          for (int i = 0; i < n; i++) {
+              if (nums[i] < min) {
+                  min = nums[i];
+              }
+              if (nums[i] > max) {
+                  max = nums[i];
+              }
+          }
+          int diff = max - min;
+          // dp[i][d] 表示前i+1个数，在公差为d时的最长等差子序列的长度
+          int[][] dp = new int[n][2 * diff + 1];
+          int res = 1;
+          for(int i = 0; i < n; i++){
+              Arrays.fill(dp[i],1);
+              for(int j = 0; j < i; j++){
+                  int d = nums[i] - nums[j] + diff;
+                  dp[i][d] = Math.max(dp[i][d], dp[j][d] + 1);
+                  res = Math.max(res, dp[i][d]);
+              }
+          }
+          return res;
+      }
+  }
+  ```
+
+  - 由于公差最小值为 `-(max - min)`，最大值为 `(max - min)`，所以 dp 数组二维的长度为 `2 * (max - min) + 1`。
+
+### 3.等差数列划分
+
+#### 题目
+
+- 如果一个数列 **至少有三个元素** ，并且任意两个相邻元素之差相同，则称该数列为等差数列。
+
+  - 例如，`[1,3,5,7,9]`、`[7,7,7,7]` 和 `[3,-1,-5,-9]` 都是等差数列。
+
+  给你一个整数数组 `nums` ，返回数组 `nums` 中所有为等差数组的 **子数组** 个数。
+
+  **子数组** 是数组中的一个连续序列。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [1,2,3,4]
+  输出：3
+  解释：nums 中有三个子等差数组：[1, 2, 3]、[2, 3, 4] 和 [1,2,3,4] 自身。
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [1]
+  输出：0
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 5000`
+  - `-1000 <= nums[i] <= 1000`
+
+#### 思路
+
+- 令 `dp[i]` 表示从 `nums[0]` 到 `nums[i]` **且以 `nums[i]` 为结尾**的等差数列子数组的数量。则如果 `num[i]` 能够加入 `num[i - 1]` 所在的等差数列，`dp[i] = dp[i - 1] + 1`。
+
+  - 然后在遍历数组的过程中，将所有等差数列子数组的个数累计即可。
+
+  ```java
+  class Solution {
+      public int numberOfArithmeticSlices(int[] nums) {
+          if (nums == null || nums.length <= 2) {
+              return 0;
+          }
+          int n = nums.length;
+          // dp[i]表示从nums[0]到nums[i]且以nums[i]为结尾的等差数列子数组的数量
+          int[] dp = new int[n];
+          // dp[i] = dp[i - 1] + 1, if (nums[i] - nums[i - 1] == nums[i - 1] - nums[i - 2])
+          int res = 0;
+          for (int i = 2; i <n; i++) {
+              if (nums[i] - nums[i - 1] == nums[i - 1] - nums[i - 2]) { 
+                  dp[i] = dp[i - 1] + 1;
+              }
+              res += dp[i];
+          }
+          return res;
+      }
+  }
+  ```
+
+  
+
