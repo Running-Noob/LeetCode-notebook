@@ -13520,5 +13520,178 @@ public class Main {
   }
   ```
 
-  
 
+## 摩尔投票
+
+- 摩尔投票在以下场景中十分有效：
+
+  - 从一组数据中找到出现次数超过半数的数据。
+  - 从一组数据中找到出现次数超过三分之一的数据。
+  - ......
+
+  空间复杂度仅为 O(1)。
+
+### 1.多数元素
+
+#### 题目
+
+- 给定一个大小为 `n` 的数组 `nums` ，返回其中的多数元素。多数元素是指在数组中出现次数 **大于** `⌊ n/2 ⌋` 的元素。
+
+  你可以假设数组是非空的，并且给定的数组总是存在多数元素。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [3,2,3]
+  输出：3
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [2,2,1,1,1,2,2]
+  输出：2
+  ```
+
+  **提示：**
+
+  - `n == nums.length`
+  - `1 <= n <= 5 * 104`
+  - `-109 <= nums[i] <= 109`
+
+#### 思路
+
+- 使用摩尔投票来解决这个问题。
+
+  - 如果我们每遇到一次要找的数就将计数 +1，把其他数记为 −1，将它们全部加起来，显然和大于 0，从结果本身我们可以看出众数比其他数多。
+
+    那我怎么知道我要找的数是哪个呢？我在遍历数组的过程中并不知道，**所以如果计数为 0，就将遇到的第一个数作为我可能的 “候选数”。**
+
+  - 摩尔投票的步骤如下：
+
+    > 遍历数组中的每个元素： 
+    >
+    > - 如果 `count` 等于 0，将当前元素设置为候选主要元素 `candidate`，并将 `count` 设置为 1
+    > - 如果 `count`  不等于 0，检查当前元素是否等于 `candidate`
+    >   - 如果相等，将 `count` +1，表示找到了一个与候选主要元素相同的元素。
+    >   - 如果不相等，将 `count` -1，表示找到了一个与候选主要元素不同的元素。
+    >
+    > 在遍历完成后，`candidate` 变量中存储的元素就是数组中的主要元素。
+
+    - 这个算法的核心思想在于**消除不同元素对**，最终剩下的元素就是主要元素，因为主要元素的出现次数超过一半。
+
+  ```java
+  class Solution {
+      public int majorityElement(int[] nums) {
+          if (nums == null || nums.length == 0) {
+              throw new RuntimeException("数组不合法");
+          }
+          int n = nums.length;
+          Integer candidate = null;
+          int count = 0;
+          for (int i = 0; i < n; i++) {
+              if (count == 0) {
+                  // 如果count为0，则将当前数作为候选数
+                  candidate = nums[i];
+              }
+              // 如果nums[i]和候选数相同，则将计数+1，否则-1
+              count += (candidate == nums[i] ? 1 : -1);
+          }
+          return candidate;
+      }
+  }
+  ```
+
+### 2.多数元素II
+
+#### 题目
+
+- 给定一个大小为 n 的整数数组，找出其中所有出现超过 `⌊ n/3 ⌋` 次的元素。
+
+  **示例 1：**
+
+  ```
+  输入：nums = [3,2,3]
+  输出：[3]
+  ```
+
+  **示例 2：**
+
+  ```
+  输入：nums = [1]
+  输出：[1]
+  ```
+
+  **示例 3：**
+
+  ```
+  输入：nums = [1,2]
+  输出：[1,2]
+  ```
+
+  **提示：**
+
+  - `1 <= nums.length <= 5 * 104`
+  - `-109 <= nums[i] <= 109`
+
+#### 思路
+
+- 这是 `1.多数元素` 基础之上的进阶，核心还是使用摩尔投票。
+
+  ```java
+  class Solution {
+      public List<Integer> majorityElement(int[] nums) {
+          int n = nums.length;
+          List<Integer> res = new ArrayList<>();
+          if (nums == null || n == 0) {
+              return res;
+          }
+          // 因为出现次数超过floor(n/3)，所以最多只有两个元素符合要求
+          int candidate1 = 0;
+          int candidate2 = 0;
+          int vote1 = 0;
+          int vote2 = 0;
+          for (int i = 0; i < n; i++) {
+              if (vote1 > 0 && candidate1 == nums[i]) {
+                  // 如果当前数和candidate1相同，则vote1加1
+                  vote1++;
+              } else if (vote2 > 0 && candidate2 == nums[i]) {
+                  // 如果当前数和candidate2相同，则vote2加1
+                  vote2++;
+              } else if (vote1 == 0) {
+                  // 如果vote1为0，则将当前数作为candidate1
+                  candidate1 = nums[i];
+                  vote1 = 1;
+              } else if (vote2 == 0) {
+                  // 如果vote2为0，则将当前数作为candidate2
+                  candidate2 = nums[i];
+                  vote2 = 1;
+              } else {
+                  // 该数和candidate1、candidate2均不相同，则相互抵消一次
+                  vote1--;
+                  vote2--;
+              }
+          }
+          int count1 = 0;
+          int count2 = 0;
+          // 还要再校验一次，判断是否真的出现次数超过floor(n/3)，因为可能只有一个数出现次数超过floor(n/3)
+          for (int i = 0; i < n; i++) {
+              if (vote1 > 0 && nums[i] == candidate1) {
+                  count1++;
+              }
+              if (vote2 > 0 && nums[i] == candidate2) {
+                  count2++;
+              }
+          }
+          if (count1 > n / 3) {
+              res.add(candidate1);
+          }
+          if (count2 > n / 3) {
+              res.add(candidate2);
+          }
+          return res;
+      }
+  }
+  ```
+
+  
