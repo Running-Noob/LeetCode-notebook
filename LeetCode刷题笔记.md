@@ -12844,6 +12844,245 @@ public class Main {
     }
     ```
 
+### 5.最短路径
+
+#### 题目
+
+- 题目描述
+
+  小明是一位科学家，他需要参加一场重要的国际科学大会，以展示自己的最新研究成果。
+
+  小明的起点是第一个车站，终点是最后一个车站。然而，途中的各个车站之间的道路状况、交通拥堵程度以及可能的自然因素（如天气变化）等不同，这些因素都会影响每条路径的通行时间。
+
+  小明希望能选择一条花费时间最少的路线，以确保他能够尽快到达目的地。
+
+- 输入描述
+
+  第一行包含两个正整数，第一个正整数 N 表示一共有 N 个公共汽车站，第二个正整数 M 表示有 M 条公路。 
+
+  接下来为 M 行，每行包括三个整数，S、E 和 V，代表了从 S 车站可以单向直达 E 车站，并且需要花费 V 单位的时间。
+
+- 输出描述
+
+  输出一个整数，代表小明从起点到终点所花费的最小时间。
+
+  输入示例
+
+  ```
+  7 9
+  1 2 1
+  1 3 4
+  2 3 2
+  2 4 5
+  3 4 2
+  4 5 3
+  2 6 4
+  5 7 4
+  6 7 9
+  ```
+
+  输出示例
+
+  ```
+  12
+  ```
+
+  提示信息
+
+  **能够到达的情况：**
+
+  如下图所示，起始车站为 1 号车站，终点车站为 7 号车站，绿色路线为最短的路线，路线总长度为 12，则输出 12。
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240122/20240122163716_71030.png)
+
+  **不能到达的情况：**
+
+  如下图所示，当从起始车站不能到达终点车站时，则输出 -1。
+
+  ![img](https://kamacoder.com/upload/kamacoder.com/image/20240125/20240125154052_26956.png)
+
+  
+
+  数据范围：
+
+  1 <= N <= 500;
+  1 <= M <= 5000;
+
+#### 思路
+
+##### dijkstra算法
+
+- dijkstra 算法解决的是**单源最短路径**问题，即可以知道源点到其他任一顶点的最短路径距离。
+
+- dijkstra 算法是贪心的思路：不断寻找距离源点最近的没有访问过的节点。
+
+  1. 选源点到哪个节点最近且该节点未被访问过。
+     - 用 `visited` 数组记录结点是否被访问过。
+  2. 该最近节点被标记为访问过。
+  3. 更新非访问节点到源点的距离（即更新 `minDist` 数组）。
+     - **`minDist` 数组用来记录每一个节点距离源点的最小距离**。
+
+  ```java
+  import java.util.*;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int N = in.nextInt();
+          int M = in.nextInt();
+          int[][] path = new int[N + 1][N + 1];
+          for (int i = 1; i <= N; i++) {
+              Arrays.fill(path[i], Integer.MAX_VALUE);
+          }
+          // minDist数组, 记录的是任一顶点到源点的最小距离
+          int[] minDist = new int[N + 1];
+          Arrays.fill(minDist, Integer.MAX_VALUE);
+          // visited数组, 记录的是该顶点是否被访问过
+          boolean[] visited = new boolean[N + 1];
+          for (int i = 0; i < M; i++) {
+              int start = in.nextInt();
+              int end = in.nextInt();
+              int cost = in.nextInt();
+              path[start][end] = cost;
+          }
+          // 首先将起点加入
+          minDist[1] = 0;
+          visited[1] = true;
+          for (int i = 1; i <= N; i++) {
+              if (path[1][i] < minDist[i]) {
+                  minDist[i] = path[1][i];
+              }
+          }
+          // 遍历
+          while(true) {
+              int index = -1;
+              int min = Integer.MAX_VALUE;
+              for (int j = 1; j <= N; j++) {
+                  if (!visited[j] && minDist[j] < min) {
+                      index = j;
+                      min = minDist[j];
+                  }
+              }
+              if (index == -1) {
+                  // break有两种情况：
+                  // 一是所有顶点已经遍历完了
+                  // 二是图中顶点不全是联通的
+                  break;
+              }
+              // 将顶点记为访问过
+              visited[index] = true;
+              // 更新minDist数组
+              for (int j = 1; j <= N; j++) {
+                  if (!visited[j] 
+                      && path[index][j] != Integer.MAX_VALUE 
+                      && minDist[index] + path[index][j] < minDist[j]) {
+                      minDist[j] = minDist[index] + path[index][j];
+                  }
+              }
+          }
+          if (minDist[N] == Integer.MAX_VALUE) {
+              System.out.println(-1);
+          } else {
+              System.out.println(minDist[N]);
+          }
+      }
+  }
+  ```
+
+##### floyd算法
+
+- floyd 算法解决的是**多源最短路径**问题，即可以知道任一顶点到其他顶点的最短路径距离。
+
+  - floyd 算法核心思想是动态规划。
+    - 例如我们求节点 1 到节点 9 的最短距离，用二维数组来表示：grid\[1][9]，如果最短距离是10，那就是 grid\[1][9] = 10。
+    - 那节点 1 到节点 9 的最短距离 是不是可以由节点 1 到节点 5 的最短距离 + 节点 5 到节点 9 的最短距离组成呢？即 grid\[1][9] = grid\[1][5] + grid\[5][9]
+    - 节点 1 到节点 5 的最短距离是不是可以由节点 1 到节点 3 的最短距离 + 节点 3 到节点 5 的最短距离组成呢？即 grid\[1][5] = grid\[1][3] + grid\[3][5]
+    - 以此类推，节点 1 到节点 3 的最短距离可以由更小的区间组成。
+
+  - 可以发现，这是由重叠子问题推导求出整体最优方案，所以用动态规划来解决。
+
+- 动归五部曲：
+
+  1. **确定 dp 数组及其下标含义。**
+
+     - 这里我们用 grid 数组来存图，那就把 dp 数组命名为 grid。grid\[i][j] 表示，表示节点 i 到节点 j 的最短距离。
+
+  2. **确定递推公式。**
+
+     - 我们分两种情况：
+       - 节点 i 到 节点 j 的最短路径经过节点 k：`grid[i][j] = grid[i][k] + grid[k][j]`
+       - 节点 i 到 节点 j 的最短路径不经过节点 k：`grid[i][j] = grid[i][j]`
+     - 因为我们是求最短路，对于这两种情况自然是取最小值：即递推公式即为： `grid[i][j] = min(grid[i][k] + grid[k][j], grid[i][j])` 
+
+  3. **对 dp 数组进行初始化。**
+
+     - 根据题目输入进行初始化，对于两个顶点之间没有边的情况，用 MAX_VALUE 来表示。
+
+       ```java
+       // 初始化
+       for (int i = 1; i <= N; i++) {
+           Arrays.fill(grid[i], Integer.MAX_VALUE);
+       }
+       for (int i = 0; i < M; i++) {
+           int u = in.nextInt();
+           int v = in.nextInt();
+           int w = in.nextInt();
+           grid[u][v] = grid[v][u] = w;
+       }
+       ```
+
+  4. **确定 dp 数组的遍历顺序。**
+
+     - 从递推公式：`grid[i][j] = min(grid[i][k] + grid[k][j], grid[i][j])` 可以看出，我们需要三个 for 循环，分别遍历 i，j，k
+     - 那么这三个 for 的嵌套顺序应该是什么样的呢？
+       - **我们需要把对 k 的 for 循环放在最外层**，至于遍历 i 和 j 的话，for 循环的先后顺序无所谓。
+       - 为什么呢？
+         - 因为比如说如果 k 放在最里面，那在 i 和 j 进行 for 循环时，就先把节点 i 和节点 j 的最短距离确定了，后面再也不会再去计算节点 i 和节点 j 的距离，同时也不会基于初始化或者之前计算过的结果用来计算，即没有利用上子问题计算的结果。
+         - k 循环放在中间也是类似的。
+
+  5. **举例推导 dp 数组。**
+
+  ```java
+  import java.util.*;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          int N = in.nextInt(); // 顶点个数
+          int M = in.nextInt(); // 边的个数
+          int[][] grid = new int[N + 1][N + 1];
+          // 初始化
+          for (int i = 1; i <= N; i++) {
+              Arrays.fill(grid[i], Integer.MAX_VALUE);
+          }
+          for (int i = 0; i < M; i++) {
+              int u = in.nextInt();
+              int v = in.nextInt();
+              int w = in.nextInt();
+              grid[u][v] = grid[v][u] = w;
+          }
+          for (int k = 1; k <= N; k++) {
+              for (int i = 1; i <= N; i++) {
+                  for (int j = 1; j <= N; j++) {
+                      // grid[i][j] = min(grid[i][k] + grid[k][j], grid[i][j])
+                      if (grid[i][k] != Integer.MAX_VALUE &&
+                          grid[k][j] != Integer.MAX_VALUE &&
+                          grid[i][k] + grid[k][j] < grid[i][j]) {
+                          grid[i][j] = grid[i][k] + grid[k][j];
+                      }
+                  }
+              }
+          }
+          int Q = in.nextInt();
+          for (int i = 0; i < Q; i++) {
+              int start = in.nextInt();
+              int end = in.nextInt();
+              System.out.println(grid[start][end] == Integer.MAX_VALUE ? -1 : grid[start][end]);
+          }
+      }
+  }
+  ```
+
 ## 排序
 
 ### 1.排序数组
